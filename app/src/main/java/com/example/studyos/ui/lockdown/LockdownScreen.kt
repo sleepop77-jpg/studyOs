@@ -31,6 +31,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,11 +42,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.studyos.core.BustedOverlay
 import com.example.studyos.core.LockdownManager
 import com.example.studyos.core.LockdownService
@@ -71,12 +75,36 @@ private val KNOWN_DISTRACTIONS = listOf(
 @Composable
 fun LockdownScreen(back: () -> Unit) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var enabled by remember { mutableStateOf(LockdownManager.isEnabled(context)) }
     var hasAccess by remember { mutableStateOf(LockdownManager.hasUsageAccess(context)) }
     var hasOverlay by remember { mutableStateOf(BustedOverlay.canShow(context)) }
     var blocked by remember { mutableStateOf(LockdownManager.blockedPackages(context)) }
     var query by remember { mutableStateOf("") }
     val timerRunning by Timer.running.collectAsState()
+
+    fun syncService() {
+        val i = Intent(context, LockdownService::class.java)
+        if (hasAccess) {
+            ContextCompat.startForegroundService(context, i)
+        } else {
+            context.stopService(i)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                enabled = LockdownManager.isEnabled(context)
+                hasAccess = LockdownManager.hasUsageAccess(context)
+                hasOverlay = BustedOverlay.canShow(context)
+                blocked = LockdownManager.blockedPackages(context)
+                syncService()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val apps = remember {
         val pm = context.packageManager
@@ -94,15 +122,6 @@ fun LockdownScreen(back: () -> Unit) {
     }
     val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true) }
     val bgBrush = homeBrush()
-
-    fun syncService() {
-        val i = Intent(context, LockdownService::class.java)
-        if (enabled && LockdownManager.hasUsageAccess(context)) {
-            ContextCompat.startForegroundService(context, i)
-        } else {
-            context.stopService(i)
-        }
-    }
 
     Column(Modifier.fillMaxSize().background(bgBrush)) {
         Row(
@@ -122,7 +141,7 @@ fun LockdownScreen(back: () -> Unit) {
                         Column(Modifier.weight(1f)) {
                             Text("Lockdown Mode", color = Color(0xFF2D2D2D), fontWeight = FontWeight.Black, fontSize = 16.sp)
                             Text(
-                                if (timerRunning) "Sealed while a focus session is running." else "Opening a sealed app yanks you back and burns Shame.",
+                                if (timerRunning) "Sealed while a focus session is running." else "Arms automatically when your timer runs. Opening a sealed app yanks you back and burns Shame.",
                                 color = Color(0xFF756565), fontSize = 11.sp
                             )
                         }
@@ -144,8 +163,6 @@ fun LockdownScreen(back: () -> Unit) {
                     Button(
                         onClick = {
                             try { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) } catch (_: Exception) { }
-                            hasAccess = LockdownManager.hasUsageAccess(context)
-                            syncService()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
                         shape = RoundedCornerShape(14.dp),
@@ -164,7 +181,6 @@ fun LockdownScreen(back: () -> Unit) {
                             } catch (_: Exception) {
                                 try { context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)) } catch (_: Exception) { }
                             }
-                            hasOverlay = BustedOverlay.canShow(context)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
                         shape = RoundedCornerShape(14.dp),
