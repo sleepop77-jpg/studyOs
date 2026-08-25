@@ -30,6 +30,7 @@ import com.example.studyos.ui.theme.PrimaryCoral
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         Economy.init(applicationContext)
         Timer.init()
         Store.init(applicationContext)
