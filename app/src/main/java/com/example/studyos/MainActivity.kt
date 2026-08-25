@@ -36,11 +36,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = PrimaryCoral)) {
                 var route by remember { mutableStateOf("launcher") }
-                val isRunning by com.example.studyos.core.Timer.running.collectAsState()
-                
-                LaunchedEffect(isRunning) {
+                LaunchedEffect(Unit) {
                     val serviceIntent = Intent(this@MainActivity, LockdownService::class.java)
-                    if (isRunning && LockdownManager.isEnabled(this@MainActivity) && LockdownManager.hasUsageAccess(this@MainActivity)) {
+                    if (LockdownManager.isEnabled(this@MainActivity) && LockdownManager.hasUsageAccess(this@MainActivity)) {
                         androidx.core.content.ContextCompat.startForegroundService(this@MainActivity, serviceIntent)
                     } else {
                         stopService(serviceIntent)
