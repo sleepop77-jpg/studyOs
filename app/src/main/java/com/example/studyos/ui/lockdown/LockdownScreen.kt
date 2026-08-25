@@ -2,10 +2,10 @@ package com.example.studyos.ui.lockdown
 
 import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -39,31 +38,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.example.studyos.core.BustedOverlay
 import com.example.studyos.core.LockdownManager
+import com.example.studyos.core.LockdownService
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.common.SIcons
+import com.example.studyos.ui.common.homeBrush
 
 data class AppEntry(val pkg: String, val label: String, val icon: Drawable)
 
-private val QUICK_APPS = listOf(
+private val KNOWN_DISTRACTIONS = listOf(
     "com.instagram.android" to "Instagram",
     "com.google.android.youtube" to "YouTube",
-    "com.zhiliaoapp.musically" to "TikTok",
     "com.whatsapp" to "WhatsApp",
     "com.snapchat.android" to "Snapchat",
     "com.twitter.android" to "X / Twitter",
     "com.reddit.frontpage" to "Reddit",
     "com.discord" to "Discord",
     "com.netflix.mediaclient" to "Netflix",
-    "org.telegram.messenger" to "Telegram"
+    "org.telegram.messenger" to "Telegram",
+    "com.android.vending" to "Play Store"
 )
 
 @Composable
@@ -71,25 +73,38 @@ fun LockdownScreen(back: () -> Unit) {
     val context = LocalContext.current
     var enabled by remember { mutableStateOf(LockdownManager.isEnabled(context)) }
     var hasAccess by remember { mutableStateOf(LockdownManager.hasUsageAccess(context)) }
-    var hasOverlay by remember { mutableStateOf(LockdownManager.hasOverlayPermission(context)) }
+    var hasOverlay by remember { mutableStateOf(BustedOverlay.canShow(context)) }
     var blocked by remember { mutableStateOf(LockdownManager.blockedPackages(context)) }
     var query by remember { mutableStateOf("") }
     val timerRunning by Timer.running.collectAsState()
 
     val apps = remember {
         val pm = context.packageManager
-        pm.getInstalledApplications(0)
+        val installed = pm.getInstalledApplications(0)
             .mapNotNull { info ->
                 if (info.packageName == context.packageName) return@mapNotNull null
                 if (pm.getLaunchIntentForPackage(info.packageName) == null) return@mapNotNull null
                 AppEntry(info.packageName, pm.getApplicationLabel(info).toString(), pm.getApplicationIcon(info))
             }
-            .sortedBy { it.label.lowercase() }
+        val installedPkgs = installed.map { it.pkg }.toSet()
+        val missing = KNOWN_DISTRACTIONS
+            .filter { !installedPkgs.contains(it.first) }
+            .map { (pkg, label) -> AppEntry(pkg, label, pm.getDefaultApplicationIcon(0)) }
+        (installed + missing).sortedBy { it.label.lowercase() }
     }
-    val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) }
-    val homeBrush = Brush.verticalGradient(listOf(Color(0xFFD9534F), Color(0xFFC94440)))
+    val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true) }
+    val bgBrush = homeBrush()
 
-    Column(Modifier.fillMaxSize().background(homeBrush)) {
+    fun syncService() {
+        val i = Intent(context, LockdownService::class.java)
+        if (enabled && LockdownManager.hasUsageAccess(context)) {
+            ContextCompat.startForegroundService(context, i)
+        } else {
+            context.stopService(i)
+        }
+    }
+
+    Column(Modifier.fillMaxSize().background(bgBrush)) {
         Row(
             Modifier.fillMaxWidth().padding(top = 24.dp, start = 4.dp, end = 16.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -107,7 +122,7 @@ fun LockdownScreen(back: () -> Unit) {
                         Column(Modifier.weight(1f)) {
                             Text("Lockdown Mode", color = Color(0xFF2D2D2D), fontWeight = FontWeight.Black, fontSize = 16.sp)
                             Text(
-                                if (timerRunning) "Sealed while a focus session is running." else "During any focus session, opening a sealed app yanks you back and burns Shame.",
+                                if (timerRunning) "Sealed while a focus session is running." else "Opening a sealed app yanks you back and burns Shame.",
                                 color = Color(0xFF756565), fontSize = 11.sp
                             )
                         }
@@ -117,6 +132,7 @@ fun LockdownScreen(back: () -> Unit) {
                             onCheckedChange = {
                                 enabled = it
                                 LockdownManager.setEnabled(context, it)
+                                syncService()
                             },
                             colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFFD9534F))
                         )
@@ -129,6 +145,7 @@ fun LockdownScreen(back: () -> Unit) {
                         onClick = {
                             try { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) } catch (_: Exception) { }
                             hasAccess = LockdownManager.hasUsageAccess(context)
+                            syncService()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
                         shape = RoundedCornerShape(14.dp),
@@ -140,45 +157,46 @@ fun LockdownScreen(back: () -> Unit) {
                 item {
                     Button(
                         onClick = {
-                            try { context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)) } catch (_: Exception) { }
-                            hasOverlay = LockdownManager.hasOverlayPermission(context)
+                            try {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName))
+                                )
+                            } catch (_: Exception) {
+                                try { context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)) } catch (_: Exception) { }
+                            }
+                            hasOverlay = BustedOverlay.canShow(context)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.fillMaxWidth().height(46.dp)
-                    ) { Text("2. Grant Display Over Apps (show BUSTED screen)", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp) }
+                    ) { Text("2. Allow Display Over Apps (show BUSTED)", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp) }
                 }
             }
             item {
-                Text("Quick-seal known distractions", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-            }
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(QUICK_APPS, key = { it.first }) { (pkg, label) ->
-                        val isOn = blocked.contains(pkg)
-                        Text(
-                            label,
-                            color = if (isOn) Color.White else Color(0xFF2D2D2D),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            modifier = Modifier
-                                .background(if (isOn) Color(0xFFC41C3B) else Color.White.copy(alpha = 0.85f), RoundedCornerShape(12.dp))
-                                .clickable {
-                                    if (!timerRunning) {
-                                        blocked = if (isOn) blocked - pkg else blocked + pkg
-                                        LockdownManager.setBlockedPackages(context, blocked)
+                Button(
+                    onClick = {
+                        val ok = BustedOverlay.show(context, "Test App", 3)
+                        if (!ok) {
+                            try {
+                                context.startActivity(
+                                    Intent(context, BustedActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                        putExtra("busted_app_name", "Test App")
                                     }
-                                }
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                        )
-                    }
-                }
+                                )
+                            } catch (_: Exception) { }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20B2AA)),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth().height(46.dp)
+                ) { Text("TEST BUSTED SCREEN", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp) }
             }
             item {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    label = { Text("Search all installed apps") },
+                    label = { Text("Search apps") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
