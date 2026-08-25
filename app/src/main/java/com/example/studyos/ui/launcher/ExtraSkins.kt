@@ -65,11 +65,9 @@ private fun DrawScope.drawNinjaHeadband(headCenter: Offset, w: Float, h: Float, 
     val bandY = headCenter.y - h * 0.10f
     val bandH = 6f.dp.toPx()
 
-    // Aura effect - ethereal energy field
     val auraPulse = 0.4f + 0.6f * ((sin(t * 1.5f) + 1f) / 2f)
     val auraColor = Color(0xFF8B1414)
     
-    // Outer aura glow
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(
@@ -84,7 +82,6 @@ private fun DrawScope.drawNinjaHeadband(headCenter: Offset, w: Float, h: Float, 
         radius = w * 0.45f
     )
 
-    // Energy particles floating around
     for (i in 0 until 8) {
         val particleT = (t + i * 0.8f) % (2f * Math.PI.toFloat())
         val particleRadius = w * 0.28f + sin(particleT * 2f) * 8f.dp.toPx()
@@ -99,14 +96,12 @@ private fun DrawScope.drawNinjaHeadband(headCenter: Offset, w: Float, h: Float, 
         )
     }
 
-    // Headband
     drawRoundRect(color = Color(0xFFB71C1C), topLeft = Offset(headCenter.x - hrX * 0.98f, bandY), size = Size(hrX * 1.96f, bandH), cornerRadius = androidx.compose.ui.geometry.CornerRadius(bandH / 2f))
     drawCircle(Color(0xFFFFD700), 3.5f.dp.toPx(), Offset(headCenter.x, bandY + bandH / 2f))
 
     val knot = Offset(headCenter.x + hrX * 0.95f, bandY + bandH / 2f)
     drawCircle(Color(0xFF8B1414), 4f.dp.toPx(), knot)
 
-    // Tails with wave animation
     for (tail in 0 until 2) {
         val path = Path().apply {
             moveTo(knot.x, knot.y)
