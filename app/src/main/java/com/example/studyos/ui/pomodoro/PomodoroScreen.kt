@@ -48,7 +48,7 @@ fun PomodoroScreen(back: () -> Unit) {
     val isBurning = continuous >= 10800
     val progress = if (total > 0) seconds.toFloat() / total.toFloat() else 1f
     val brush = if (isBurning) Brush.verticalGradient(listOf(Color(0xFF8B1E0F), Color(0xFF240703)))
-    else Brush.verticalGradient(listOf(Color(0xFFD9534F), Color(0xFFC94440)))
+    else com.example.studyos.ui.common.homeBrush()
     Column(
         modifier = Modifier.fillMaxSize().background(brush).verticalScroll(rememberScrollState()).padding(top = 24.dp, bottom = 32.dp, start = 20.dp, end = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
