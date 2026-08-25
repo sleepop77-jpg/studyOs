@@ -24,6 +24,7 @@ android {
     buildFeatures { compose = true }
 }
 dependencies {
+    implementation("com.github.getActivity:XXPermissions:20.0")
     implementation(platform("androidx.compose:compose-bom:2024.09.00"))
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.compose.material3:material3")
