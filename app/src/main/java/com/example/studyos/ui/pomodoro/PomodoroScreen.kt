@@ -1,6 +1,7 @@
 package com.example.studyos.ui.pomodoro
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,8 +54,10 @@ fun PomodoroScreen(back: () -> Unit) {
     val total by Timer.total.collectAsState()
     val running by Timer.running.collectAsState()
     val subject by Timer.subject.collectAsState()
+
     var celebrate by remember { mutableStateOf(false) }
     var wasRunning by remember { mutableStateOf(false) }
+
     LaunchedEffect(running) {
         if (wasRunning && !running && seconds >= total) {
             celebrate = true
@@ -63,10 +66,19 @@ fun PomodoroScreen(back: () -> Unit) {
         }
         wasRunning = running
     }
+
     val bgBrush = homeBrush()
-    Box(Modifier.fillMaxSize().background(bgBrush)) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgBrush)
+    ) {
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -77,14 +89,32 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 IconButton(
                     onClick = back,
-                    modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f))
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f))
                 ) {
-                    Icon(SIcons.Back, contentDescription = "Back", tint = Color.White)
+                    Icon(
+                        imageVector = SIcons.Back,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
                 }
-                Text(subject, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Spacer(Modifier.size(40.dp))
+
+                Text(
+                    text = subject,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+
+                Spacer(modifier = Modifier.size(40.dp))
             }
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(230.dp)) {
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(230.dp)
+            ) {
                 InteractiveMascot(
                     state = if (running) MascotState.STUDYING else MascotState.IDLE,
                     size = 220.dp,
@@ -92,34 +122,56 @@ fun PomodoroScreen(back: () -> Unit) {
                     progressArc = if (total > 0) seconds.toFloat() / total.toFloat() else 1f
                 )
             }
+
             Text(
-                String.format("%02d:%02d", seconds / 60, seconds % 60),
-                color = Color.White, fontSize = 48.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, textAlign = TextAlign.Center
+                text = String.format("%02d:%02d", seconds / 60, seconds % 60),
+                color = Color.White,
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                textAlign = TextAlign.Center
             )
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
-                IconButton(onClick = { Timer.reset() }, modifier = Modifier.size(46.dp)) {
-                    Icon(SIcons.Back, contentDescription = "Reset", tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(26.dp))
-                }
                 IconButton(
-                    onClick = { Timer.toggle() },
-                    modifier = Modifier.size(64.dp).clip(CircleShape).background(Color.White)
+                    onClick = { Timer.reset() },
+                    modifier = Modifier.size(46.dp)
                 ) {
                     Icon(
-                        if (running) SIcons.Pause else SIcons.Play,
+                        imageVector = SIcons.Back,
+                        contentDescription = "Reset",
+                        tint = Color.White.copy(alpha = 0.9f),
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = { Timer.toggle() },
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                ) {
+                    Icon(
+                        imageVector = if (running) SIcons.Pause else SIcons.Play,
                         contentDescription = if (running) "Pause" else "Play",
                         tint = Color(0xFFD9534F),
                         modifier = Modifier.size(36.dp)
                     )
                 }
-                Spacer(Modifier.size(46.dp))
+
+                Spacer(modifier = Modifier.size(46.dp))
             }
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(15, 25, 45, 60, 90, 180).forEach { mins ->
                     val isSelected = total == mins * 60
@@ -129,17 +181,28 @@ fun PomodoroScreen(back: () -> Unit) {
                         color = if (isSelected) Color.White else Color.White.copy(alpha = 0.18f),
                         modifier = Modifier.height(34.dp)
                     ) {
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
-                            Text("${mins}m", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (isSelected) Color(0xFF4A2C2C) else Color.White)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        ) {
+                            Text(
+                                text = "${mins}m",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color(0xFF4A2C2C) else Color.White
+                            )
                         }
                     }
                 }
             }
+
             Text(
-                "Leaving the app voids the session. Finishing banks Fame.",
-                color = Color.White.copy(alpha = 0.75f), fontSize = 11.sp
+                text = "Leaving the app voids the session. Finishing banks Fame.",
+                color = Color.White.copy(alpha = 0.75f),
+                fontSize = 11.sp
             )
         }
+
         if (celebrate) {
             KonfettiView(
                 modifier = Modifier.fillMaxSize(),
@@ -149,8 +212,13 @@ fun PomodoroScreen(back: () -> Unit) {
                         maxSpeed = 30f,
                         damping = 0.9f,
                         spread = Spread.ROUND,
-                        colors = listOf(0xFFFFD700.toInt(), 0xFFD9534F.toInt(), 0xFF4CAF50.toInt(), 0xFF20B2AA.toInt()),
-                        emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
+                        colors = listOf(
+                            0xFFFFD700.toInt(),
+                            0xFFD9534F.toInt(),
+                            0xFF4CAF50.toInt(),
+                            0xFF20B2AA.toInt()
+                        ),
+                        emitter = Emitter(100L, TimeUnit.MILLISECONDS).max(100),
                         position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
                     )
                 )
