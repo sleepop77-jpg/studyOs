@@ -33,10 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
+import com.example.studyos.core.StudyMarket
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
-import com.example.studyos.ui.common.customShimmer
 import com.example.studyos.ui.common.homeBrush
 
 @Composable
@@ -46,11 +46,23 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val streak by Economy.streak.collectAsState()
     val running by Timer.running.collectAsState()
     val isAdmin by Admin.enabled.collectAsState()
+
+    val stocks by StudyMarket.stocks.collectAsState()
+    val holdings by StudyMarket.holdings.collectAsState()
+    val timerWalnuts by StudyMarket.timerWalnuts.collectAsState()
+    val saleWalnuts by StudyMarket.saleWalnuts.collectAsState()
+    val dividendWalnuts by StudyMarket.dividendWalnuts.collectAsState()
+
+    val marketWallet = timerWalnuts + saleWalnuts + dividendWalnuts
+    val marketPortfolio = holdings.values.sumOf { holding ->
+        (stocks[holding.symbol]?.price ?: 0.0) * holding.shares
+    }
+
     val bgBrush = homeBrush()
 
     Box(modifier = Modifier.fillMaxSize().background(bgBrush)) {
         RedPatchesBackground()
-        
+
         Column(
             modifier = Modifier.fillMaxSize().padding(top = 32.dp, bottom = 32.dp, start = 20.dp, end = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -117,7 +129,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
             Card(
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.10f)),
-                modifier = Modifier.fillMaxWidth().customShimmer()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -144,12 +156,48 @@ fun LauncherScreen(nav: (String) -> Unit) {
                 }
             }
 
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+                modifier = Modifier.fillMaxWidth().clickable { nav("stocks") }
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        "STUDY STOCK MARKET",
+                        color = Color(0xFFFFD700),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.2.sp
+                    )
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Portfolio", color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp)
+                        Text("${marketPortfolio.toInt()} walnuts", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Wallet", color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp)
+                        Text("${marketWallet.toInt()} walnuts", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+
+                    Text(
+                        "Trade bots, earn dividends, and pump your focus stock.",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 10.sp
+                    )
+                }
+            }
+
             Text("APPLICATIONS", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 2.sp, modifier = Modifier.padding(top = 8.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 AppTile(SIcons.Timer, "Timer", Color(0xFFD9534F), Modifier.weight(1f)) { nav("pomodoro") }
                 AppTile(SIcons.Lock, "Blocker", Color(0xFF4A2C2C), Modifier.weight(1f)) { nav("lockdown") }
-                AppTile(SIcons.Bag, "Store", Color(0xFFFFD700), Modifier.weight(1f)) { nav("store") }
+                AppTile(SIcons.Star, "Stocks", Color(0xFFFFD700), Modifier.weight(1f)) { nav("stocks") }
+                AppTile(SIcons.Bag, "Store", Color(0xFF20B2AA), Modifier.weight(1f)) { nav("store") }
             }
 
             Spacer(Modifier.height(8.dp))
