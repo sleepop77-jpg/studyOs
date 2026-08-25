@@ -32,7 +32,7 @@ object Store {
     fun init(context: Context) {
         if (::prefs.isInitialized) return
         prefs = context.getSharedPreferences("studyos_store", Context.MODE_PRIVATE)
-        unlocked.value = prefs.getStringSet("unlocked", emptySet())
+        unlocked.value = prefs.getStringSet("unlocked", emptySet()) ?: emptySet()
         equippedMascot.value = prefs.getString("mascot", null)
         equippedTheme.value = prefs.getString("theme", null)
     }
