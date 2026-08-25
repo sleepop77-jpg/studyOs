@@ -51,7 +51,7 @@ fun SettingsScreen(back: () -> Unit) {
     var taps by remember { mutableIntStateOf(0) }
     var showCode by remember { mutableStateOf(false) }
     Column(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFFD9534F), Color(0xFFC94440)))).verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(com.example.studyos.ui.common.homeBrush()).verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text(
