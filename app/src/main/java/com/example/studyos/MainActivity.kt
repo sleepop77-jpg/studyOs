@@ -27,11 +27,13 @@ import com.example.studyos.core.Economy
 import com.example.studyos.core.LockdownManager
 import com.example.studyos.core.LockdownService
 import com.example.studyos.core.Store
+import com.example.studyos.core.StudyMarket
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.launcher.LauncherScreen
 import com.example.studyos.ui.lockdown.LockdownScreen
 import com.example.studyos.ui.pomodoro.PomodoroScreen
 import com.example.studyos.ui.settings.SettingsScreen
+import com.example.studyos.ui.stock.StocksScreen
 import com.example.studyos.ui.store.StoreScreen
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +42,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
 
         Economy.init(applicationContext)
+        StudyMarket.init(applicationContext)
         Timer.init()
         Store.init(applicationContext)
         Admin.init(applicationContext)
@@ -59,6 +62,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun StudyOSNav() {
     val context = LocalContext.current
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }
@@ -83,5 +87,6 @@ private fun StudyOSNav() {
         "store" -> StoreScreen(back = { route = "launcher" })
         "settings" -> SettingsScreen(back = { route = "launcher" })
         "lockdown" -> LockdownScreen(back = { route = "launcher" })
+        "stocks" -> StocksScreen(back = { route = "launcher" })
     }
 }
