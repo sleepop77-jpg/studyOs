@@ -45,7 +45,6 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val running by Timer.running.collectAsState()
     val isAdmin by Admin.enabled.collectAsState()
     val bgBrush = homeBrush()
-    val shimmer = rememberShimmer()
     Column(
         modifier = Modifier.fillMaxSize().background(bgBrush).padding(top = 24.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
