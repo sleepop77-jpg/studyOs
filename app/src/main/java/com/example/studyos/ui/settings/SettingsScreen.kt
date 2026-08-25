@@ -3,6 +3,7 @@ package com.example.studyos.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
+import com.example.studyos.core.StudyMarket
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.theme.AccentTeal
@@ -49,74 +51,85 @@ fun SettingsScreen(back: () -> Unit) {
     var taps by remember { mutableIntStateOf(0) }
     var showCode by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(homeBrush()).verticalScroll(rememberScrollState()).padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(homeBrush())) {
         RedPatchesBackground()
-        
-        Text(
-            "StudyOS Settings", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp,
-            modifier = Modifier.padding(top = 16.dp).clickable {
-                taps += 1
-                if (taps >= 7) { taps = 0; showCode = true }
-            }
-        )
 
-        Card(
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("ECONOMY RULES", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color(0xFFC94440), letterSpacing = 1.5.sp)
-                Text(
-                    "+2 Fame per minute in active sessions\n+1 Shame per minute idle (5 AM to 10 PM)\nDanger hours 4 to 6 PM: x3 Shame\nFame buys store cosmetics",
-                    fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f), lineHeight = 20.sp, letterSpacing = 0.3.sp
-                )
-            }
-        }
+            Text(
+                "StudyOS Settings", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp,
+                modifier = Modifier.padding(top = 16.dp).clickable {
+                    taps += 1
+                    if (taps >= 7) { taps = 0; showCode = true }
+                }
+            )
 
-        if (isAdmin) {
             Card(
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF330000).copy(alpha = 0.4f)),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("ADMIN MODE ACTIVE", fontWeight = FontWeight.Black, fontSize = 11.sp, color = WarningRed, letterSpacing = 1.5.sp)
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("ECONOMY RULES", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color(0xFFC94440), letterSpacing = 1.5.sp)
+                    Text(
+                        "+2 Fame per minute in active sessions\n+1 Shame per minute idle (5 AM to 10 PM)\nDanger hours 4 to 6 PM: x3 Shame\nFame buys store cosmetics",
+                        fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f), lineHeight = 20.sp, letterSpacing = 0.3.sp
+                    )
+                }
+            }
 
-                    Button(
-                        onClick = { Economy.addFame(10000) },
-                        colors = ButtonDefaults.buttonColors(containerColor = FameGold),
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("+10,000 Fame", color = OnSurfaceDark, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
-                    }
+            if (isAdmin) {
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF330000).copy(alpha = 0.4f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("ADMIN MODE ACTIVE", fontWeight = FontWeight.Black, fontSize = 11.sp, color = WarningRed, letterSpacing = 1.5.sp)
 
-                    Button(
-                        onClick = { Store.unlockAll() },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentTeal),
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Unlock All Store Items", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
-                    }
+                        Button(
+                            onClick = { Economy.addFame(10000) },
+                            colors = ButtonDefaults.buttonColors(containerColor = FameGold),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("+10,000 Fame", color = OnSurfaceDark, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
+                        }
 
-                    Button(
-                        onClick = { Admin.set(context, false) },
-                        colors = ButtonDefaults.buttonColors(containerColor = WarningRed),
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Disable Admin Mode", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
+                        Button(
+                            onClick = { StudyMarket.addAdminWalnuts(50.0) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("+50 Golden Walnuts", color = Color(0xFF4A2C2C), fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
+                        }
+
+                        Button(
+                            onClick = { Store.unlockAll() },
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentTeal),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Unlock All Store Items", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
+                        }
+
+                        Button(
+                            onClick = { Admin.set(context, false) },
+                            colors = ButtonDefaults.buttonColors(containerColor = WarningRed),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Disable Admin Mode", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
+                        }
                     }
                 }
             }
-        }
 
-        Text("Tap the title 7 times if you know what you are doing.", color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
+            Text("Tap the title 7 times if you know what you are doing.", color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
+        }
     }
 
     if (showCode) {
