@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.customShimmer
 import com.example.studyos.ui.common.homeBrush
@@ -47,15 +48,11 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val isAdmin by Admin.enabled.collectAsState()
     val bgBrush = homeBrush()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgBrush)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(bgBrush)) {
+        RedPatchesBackground()
+        
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 32.dp, bottom = 32.dp, start = 20.dp, end = 20.dp),
+            modifier = Modifier.fillMaxSize().padding(top = 32.dp, bottom = 32.dp, start = 20.dp, end = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -64,56 +61,24 @@ fun LauncherScreen(nav: (String) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(
-                        "StudyOS",
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 24.sp,
-                        letterSpacing = 0.5.sp
-                    )
-                    Text(
-                        "Focus Economy",
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.sp,
-                        letterSpacing = 1.sp
-                    )
+                    Text("StudyOS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp)
+                    Text("Focus Economy", color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium, fontSize = 11.sp, letterSpacing = 1.sp)
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (isAdmin) {
                         Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFC41C3B).copy(alpha = 0.9f))
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0xFFC41C3B).copy(alpha = 0.9f)).padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
-                            Text(
-                                "ADMIN",
-                                color = Color.White,
-                                fontWeight = FontWeight.Black,
-                                fontSize = 9.sp,
-                                letterSpacing = 1.2.sp
-                            )
+                            Text("ADMIN", color = Color.White, fontWeight = FontWeight.Black, fontSize = 9.sp, letterSpacing = 1.2.sp)
                         }
                     }
 
                     IconButton(
                         onClick = { nav("settings") },
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.12f))
+                        modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f))
                     ) {
-                        Icon(
-                            SIcons.Gear,
-                            contentDescription = "Settings",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Icon(SIcons.Gear, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -124,68 +89,27 @@ fun LauncherScreen(nav: (String) -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { nav("pomodoro") }
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().clickable { nav("pomodoro") }.padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            SIcons.Star,
-                            contentDescription = null,
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(22.dp)
-                        )
+                        Icon(SIcons.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(22.dp))
                         Spacer(Modifier.width(8.dp))
                         Column {
-                            Text(
-                                "$fame",
-                                fontWeight = FontWeight.Black,
-                                fontSize = 20.sp,
-                                color = Color.White
-                            )
-                            Text(
-                                "FAME",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 9.sp,
-                                color = Color.White.copy(alpha = 0.6f),
-                                letterSpacing = 1.2.sp
-                            )
+                            Text("$fame", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+                            Text("FAME", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.2.sp)
                         }
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "${streak}d",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 20.sp,
-                            color = Color(0xFFFFD180)
-                        )
-                        Text(
-                            "STREAK",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 9.sp,
-                            color = Color.White.copy(alpha = 0.6f),
-                            letterSpacing = 1.2.sp
-                        )
+                        Text("${streak}d", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color(0xFFFFD180))
+                        Text("STREAK", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.2.sp)
                     }
 
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            "$shame",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 20.sp,
-                            color = Color(0xFFFFD4D4)
-                        )
-                        Text(
-                            "SHAME",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 9.sp,
-                            color = Color.White.copy(alpha = 0.6f),
-                            letterSpacing = 1.2.sp
-                        )
+                        Text("$shame", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color(0xFFFFD4D4))
+                        Text("SHAME", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.2.sp)
                     }
                 }
             }
@@ -193,14 +117,10 @@ fun LauncherScreen(nav: (String) -> Unit) {
             Card(
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.10f)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .customShimmer()
+                modifier = Modifier.fillMaxWidth().customShimmer()
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -213,42 +133,20 @@ fun LauncherScreen(nav: (String) -> Unit) {
 
                     Text(
                         if (running) "Deep Focus Active" else "Tap Mascot for Motivation",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        letterSpacing = 0.3.sp
+                        color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp, letterSpacing = 0.3.sp
                     )
 
                     Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFFFD700).copy(alpha = 0.15f))
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFD700).copy(alpha = 0.15f)).padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
-                        Text(
-                            "+2 Fame/min in Active Sessions",
-                            color = Color(0xFFFFD700),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 0.5.sp
-                        )
+                        Text("+2 Fame/min in Active Sessions", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp)
                     }
                 }
             }
 
-            Text(
-                "APPLICATIONS",
-                color = Color.White.copy(alpha = 0.7f),
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
-                letterSpacing = 2.sp,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            Text("APPLICATIONS", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 2.sp, modifier = Modifier.padding(top = 8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AppTile(SIcons.Timer, "Timer", Color(0xFFD9534F), Modifier.weight(1f)) { nav("pomodoro") }
                 AppTile(SIcons.Lock, "Blocker", Color(0xFF4A2C2C), Modifier.weight(1f)) { nav("lockdown") }
                 AppTile(SIcons.Bag, "Store", Color(0xFFFFD700), Modifier.weight(1f)) { nav("store") }
@@ -268,33 +166,17 @@ private fun AppTile(icon: ImageVector, label: String, color: Color, modifier: Mo
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp, horizontal = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(color),
+                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(color),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    icon,
-                    contentDescription = label,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
+                Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(24.dp))
             }
 
-            Text(
-                label,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.3.sp
-            )
+            Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.3.sp)
         }
     }
 }
