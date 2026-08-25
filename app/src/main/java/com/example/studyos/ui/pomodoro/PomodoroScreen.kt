@@ -42,10 +42,10 @@ import com.example.studyos.ui.launcher.MascotState
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
 import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.core.Emitter
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.Spread
+import nl.dionsegijn.konfetti.core.emitter.Emitter
 
 @Composable
 fun PomodoroScreen(back: () -> Unit) {
@@ -230,7 +230,7 @@ fun PomodoroScreen(back: () -> Unit) {
                         spread = Spread.ROUND,
                         colors = listOf(0xFFFFD700.toInt(), 0xFFD9534F.toInt(), 0xFF4CAF50.toInt(), 0xFF20B2AA.toInt()),
                         emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
-                        position = Position.Top()
+                        position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
                     )
                 )
             )
