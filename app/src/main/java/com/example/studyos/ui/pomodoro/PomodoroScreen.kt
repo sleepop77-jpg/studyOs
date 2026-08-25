@@ -1,5 +1,6 @@
 package com.example.studyos.ui.pomodoro
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,7 +56,9 @@ fun PomodoroScreen(back: () -> Unit) {
     val seconds by Timer.seconds.collectAsState()
     val total by Timer.total.collectAsState()
     val running by Timer.running.collectAsState()
+    val strict by Timer.strict.collectAsState()
     val subject by Timer.subject.collectAsState()
+    val canControl = !(strict && running)
 
     var celebrate by remember { mutableStateOf(false) }
     var wasRunning by remember { mutableStateOf(false) }
@@ -66,6 +71,8 @@ fun PomodoroScreen(back: () -> Unit) {
         }
         wasRunning = running
     }
+
+    BackHandler(enabled = strict && running) { }
 
     val bgBrush = homeBrush()
 
@@ -89,6 +96,7 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 IconButton(
                     onClick = back,
+                    enabled = canControl,
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
@@ -97,7 +105,7 @@ fun PomodoroScreen(back: () -> Unit) {
                     Icon(
                         imageVector = SIcons.Back,
                         contentDescription = "Back",
-                        tint = Color.White
+                        tint = if (canControl) Color.White else Color.White.copy(alpha = 0.35f)
                     )
                 }
 
@@ -109,6 +117,49 @@ fun PomodoroScreen(back: () -> Unit) {
                 )
 
                 Spacer(modifier = Modifier.size(40.dp))
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.16f))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "STRICT MODE",
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = if (strict && running) {
+                            "Locked. No pause/reset until finished."
+                        } else if (strict) {
+                            "Once started, this session cannot be paused."
+                        } else {
+                            "Normal timer controls."
+                        },
+                        color = Color.White.copy(alpha = 0.75f),
+                        fontSize = 11.sp
+                    )
+                }
+
+                Switch(
+                    checked = strict,
+                    onCheckedChange = { Timer.setStrict(it) },
+                    enabled = !(running && strict),
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = Color(0xFFC41C3B),
+                        checkedThumbColor = Color.White,
+                        uncheckedTrackColor = Color.White.copy(alpha = 0.3f),
+                        uncheckedThumbColor = Color.White
+                    )
+                )
             }
 
             Box(
@@ -139,18 +190,20 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 IconButton(
                     onClick = { Timer.reset() },
+                    enabled = canControl,
                     modifier = Modifier.size(46.dp)
                 ) {
                     Icon(
                         imageVector = SIcons.Back,
                         contentDescription = "Reset",
-                        tint = Color.White.copy(alpha = 0.9f),
+                        tint = if (canControl) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.35f),
                         modifier = Modifier.size(26.dp)
                     )
                 }
 
                 IconButton(
                     onClick = { Timer.toggle() },
+                    enabled = canControl,
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
@@ -159,7 +212,7 @@ fun PomodoroScreen(back: () -> Unit) {
                     Icon(
                         imageVector = if (running) SIcons.Pause else SIcons.Play,
                         contentDescription = if (running) "Pause" else "Play",
-                        tint = Color(0xFFD9534F),
+                        tint = if (canControl) Color(0xFFD9534F) else Color(0xFFD9534F).copy(alpha = 0.4f),
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -176,9 +229,9 @@ fun PomodoroScreen(back: () -> Unit) {
                 listOf(15, 25, 45, 60, 90, 180).forEach { mins ->
                     val isSelected = total == mins * 60
                     Surface(
-                        onClick = { Timer.setMinutes(mins) },
+                        onClick = { if (canControl) Timer.setMinutes(mins) },
                         shape = RoundedCornerShape(14.dp),
-                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.18f),
+                        color = if (isSelected && canControl) Color.White else Color.White.copy(alpha = 0.18f),
                         modifier = Modifier.height(34.dp)
                     ) {
                         Box(
@@ -189,7 +242,7 @@ fun PomodoroScreen(back: () -> Unit) {
                                 text = "${mins}m",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color(0xFF4A2C2C) else Color.White
+                                color = if (isSelected && canControl) Color(0xFF4A2C2C) else Color.White.copy(alpha = if (canControl) 1f else 0.45f)
                             )
                         }
                     }
@@ -197,7 +250,11 @@ fun PomodoroScreen(back: () -> Unit) {
             }
 
             Text(
-                text = "Leaving the app voids the session. Finishing banks Fame.",
+                text = if (strict && running) {
+                    "Strict session active. It will not pause. Finishing banks Fame."
+                } else {
+                    "Leaving the app voids the session. Finishing banks Fame."
+                },
                 color = Color.White.copy(alpha = 0.75f),
                 fontSize = 11.sp
             )
