@@ -89,7 +89,7 @@ fun LockdownScreen(back: () -> Unit) {
         val installedPkgs = installed.map { it.pkg }.toSet()
         val missing = KNOWN_DISTRACTIONS
             .filter { !installedPkgs.contains(it.first) }
-            .map { (pkg, label) -> AppEntry(pkg, label, pm.getDefaultApplicationIcon(0)) }
+            .map { (pkg, label) -> AppEntry(pkg, label, ContextCompat.getDrawable(context, android.R.drawable.sym_def_app_icon)!!) }
         (installed + missing).sortedBy { it.label.lowercase() }
     }
     val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true) }
