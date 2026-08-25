@@ -26,6 +26,9 @@ android {
 dependencies {
     implementation("com.github.getActivity:XXPermissions:20.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")
+    implementation("nl.dionsegijn:konfetti-compose:2.0.4")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     
     
     implementation(platform("androidx.compose:compose-bom:2024.09.00"))
