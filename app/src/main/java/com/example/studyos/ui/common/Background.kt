@@ -1,11 +1,5 @@
 package com.example.studyos.ui.common
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,7 +7,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.example.studyos.core.Store
@@ -31,6 +24,12 @@ fun homeBrush(): Brush {
         )
         "item_spanish_fiesta" -> Brush.verticalGradient(
             listOf(Color(0xFF0B0303), Color(0xFF1D0505), Color(0xFF0B0303))
+        )
+        "theme_void_nexus" -> Brush.verticalGradient(
+            listOf(Color(0xFF000000), Color(0xFF12001F), Color(0xFF2A0647), Color(0xFF000000))
+        )
+        "theme_sakura_drift" -> Brush.verticalGradient(
+            listOf(Color(0xFF090409), Color(0xFF2D1B2E), Color(0xFF4A2545), Color(0xFF090409))
         )
         else -> Brush.verticalGradient(
             listOf(Color(0xFF050505), Color(0xFF0A0404), Color(0xFF140505))
@@ -50,6 +49,7 @@ fun RedPatchesBackground() {
             center = Offset(size.width * 0.85f, size.height * 0.12f),
             radius = size.width * 0.55f
         )
+
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(Color(0xFF8B0000).copy(alpha = 0.12f), Color.Transparent),
