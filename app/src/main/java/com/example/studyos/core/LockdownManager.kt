@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Process
+import android.provider.Settings
 
 object LockdownManager {
     private const val PREFS = "studyos_lockdown"
@@ -37,6 +38,9 @@ object LockdownManager {
         }
         return mode == AppOpsManager.MODE_ALLOWED
     }
+
+    fun hasOverlayPermission(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context)
 
     private fun defaultBlocked(): Set<String> = setOf(
         "com.instagram.android",
