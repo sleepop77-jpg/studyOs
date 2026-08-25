@@ -151,7 +151,7 @@ fun PomodoroScreen(back: () -> Unit) {
                         spread = Spread.ROUND,
                         colors = listOf(0xFFFFD700.toInt(), 0xFFD9534F.toInt(), 0xFF4CAF50.toInt(), 0xFF20B2AA.toInt()),
                         emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
-                        position = Position.Top()
+                        position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
                     )
                 )
             )
