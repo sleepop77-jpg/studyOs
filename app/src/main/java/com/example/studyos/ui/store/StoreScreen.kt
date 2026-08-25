@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,15 +35,14 @@ import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
 import com.example.studyos.ui.common.SIcons
+import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.AnimatedMascotPreview
 import com.example.studyos.ui.launcher.AnimatedSkins
 import com.example.studyos.ui.launcher.AnimatedThemePreview
 import com.example.studyos.ui.theme.AccentTeal
 import com.example.studyos.ui.theme.FameGold
 import com.example.studyos.ui.theme.OnSurfaceDark
-import com.example.studyos.ui.theme.OnSurfaceMuted
 import com.example.studyos.ui.theme.SuccessGreen
-import com.example.studyos.ui.theme.SurfaceCream
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,7 +56,7 @@ fun StoreScreen(back: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(com.example.studyos.ui.common.homeBrush())
+            .background(homeBrush())
     ) {
         Row(
             modifier = Modifier
@@ -70,7 +68,7 @@ fun StoreScreen(back: () -> Unit) {
                 onClick = back,
                 modifier = Modifier
                     .size(42.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color.White.copy(alpha = 0.12f))
             ) {
                 Icon(SIcons.Back, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(20.dp))
@@ -82,7 +80,7 @@ fun StoreScreen(back: () -> Unit) {
                 fontWeight = FontWeight.Black,
                 fontSize = 20.sp,
                 letterSpacing = 0.5.sp,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).padding(start = 16.dp)
             )
 
             Box(
@@ -106,7 +104,7 @@ fun StoreScreen(back: () -> Unit) {
         ) {
             items(Store.ITEMS, key = { it.id }) { item ->
                 val isUnlocked = unlocked.contains(item.id)
-                val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
+                val isEquipped = (item.category == "Mascot" && eqMascot == item.id) || (item.category == "Theme" && eqTheme == item.id)
 
                 Card(
                     shape = RoundedCornerShape(18.dp),
@@ -128,8 +126,8 @@ fun StoreScreen(back: () -> Unit) {
                             contentAlignment = Alignment.Center
                         ) {
                             when {
-                                item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 60.dp)
-                                item.type == "Theme" -> AnimatedThemePreview(item.id, size = 60.dp)
+                                item.category == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 60.dp)
+                                item.category == "Theme" -> AnimatedThemePreview(item.id, size = 60.dp)
                                 else -> Icon(SIcons.Bag, contentDescription = null, tint = Color(0xFFF5A623), modifier = Modifier.size(26.dp))
                             }
                         }
@@ -143,7 +141,7 @@ fun StoreScreen(back: () -> Unit) {
                                 letterSpacing = 0.3.sp
                             )
                             Text(
-                                item.description,
+                                item.desc,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.6f),
                                 lineHeight = 14.sp,
@@ -169,7 +167,7 @@ fun StoreScreen(back: () -> Unit) {
                             }
 
                             else -> Button(
-                                onClick = { Store.equip(item.id) },
+                                onClick = { Store.equip(item.category, item.id) },
                                 colors = ButtonDefaults.buttonColors(containerColor = if (isEquipped) SuccessGreen else AccentTeal),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.height(38.dp)
