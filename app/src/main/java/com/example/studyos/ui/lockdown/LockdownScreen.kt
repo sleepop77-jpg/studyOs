@@ -30,6 +30,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,11 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.studyos.core.BustedOverlay
 import com.example.studyos.core.LockdownManager
 import com.example.studyos.core.LockdownService
@@ -73,6 +77,7 @@ private val KNOWN_DISTRACTIONS = listOf(
 @Composable
 fun LockdownScreen(back: () -> Unit) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var enabled by remember { mutableStateOf(LockdownManager.isEnabled(context)) }
     var hasAccess by remember { mutableStateOf(LockdownManager.hasUsageAccess(context)) }
     var hasOverlay by remember { mutableStateOf(BustedOverlay.canShow(context)) }
@@ -87,6 +92,20 @@ fun LockdownScreen(back: () -> Unit) {
         } else {
             context.stopService(i)
         }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                enabled = LockdownManager.isEnabled(context)
+                hasAccess = LockdownManager.hasUsageAccess(context)
+                hasOverlay = BustedOverlay.canShow(context)
+                blocked = LockdownManager.blockedPackages(context)
+                syncService()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val apps = remember {
@@ -178,9 +197,7 @@ fun LockdownScreen(back: () -> Unit) {
                 Button(
                     onClick = {
                         val ok = BustedOverlay.show(context) {
-                            com.example.studyos.ui.theme.StudyOSTheme(darkTheme = false) {
-                                BustedScreen(onReturn = { BustedOverlay.hide() })
-                            }
+                            BustedOverlayContent("Test App", 3) { BustedOverlay.hide() }
                         }
                         if (!ok) {
                             try {
