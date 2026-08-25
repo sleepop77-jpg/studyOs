@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
+import com.example.studyos.core.StudyMarket
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.customShimmer
@@ -44,6 +45,18 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val streak by Economy.streak.collectAsState()
     val running by Timer.running.collectAsState()
     val isAdmin by Admin.enabled.collectAsState()
+
+    val stocks by StudyMarket.stocks.collectAsState()
+    val holdings by StudyMarket.holdings.collectAsState()
+    val timerWalnuts by StudyMarket.timerWalnuts.collectAsState()
+    val saleWalnuts by StudyMarket.saleWalnuts.collectAsState()
+    val dividendWalnuts by StudyMarket.dividendWalnuts.collectAsState()
+
+    val marketWallet = timerWalnuts + saleWalnuts + dividendWalnuts
+    val marketPortfolio = holdings.values.sumOf { holding ->
+        (stocks[holding.symbol]?.price ?: 0.0) * holding.shares
+    }
+
     val bgBrush = homeBrush()
 
     Column(
@@ -119,6 +132,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
                         tint = Color(0xFFFFD700),
                         modifier = Modifier.size(20.dp)
                     )
+
                     Text(
                         "$fame",
                         fontWeight = FontWeight.Black,
@@ -126,6 +140,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
                         color = Color.White,
                         modifier = Modifier.padding(start = 4.dp)
                     )
+
                     Text(
                         " FAME",
                         fontWeight = FontWeight.Bold,
@@ -206,6 +221,72 @@ fun LauncherScreen(nav: (String) -> Unit) {
             AppTile(SIcons.Timer, "Timer", Color(0xFFD9534F)) { nav("pomodoro") }
             AppTile(SIcons.Lock, "Blocker", Color(0xFF4A2C2C)) { nav("lockdown") }
             AppTile(SIcons.Bag, "Store", Color(0xFFFFD700)) { nav("store") }
+        }
+
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFFFD700).copy(alpha = 0.16f)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clickable { nav("stocks") }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    "STUDY STOCK MARKET",
+                    color = Color(0xFFFFD700),
+                    fontWeight = FontWeight.Black,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.sp
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Portfolio",
+                        color = Color.White.copy(alpha = 0.75f),
+                        fontSize = 11.sp
+                    )
+                    Text(
+                        "${marketPortfolio.toInt()} walnuts",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Wallet",
+                        color = Color.White.copy(alpha = 0.75f),
+                        fontSize = 11.sp
+                    )
+                    Text(
+                        "${marketWallet.toInt()} walnuts",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Text(
+                    "Bots study, trade, crash, and pay dividends",
+                    color = Color.White.copy(alpha = 0.65f),
+                    fontSize = 10.sp
+                )
+            }
         }
 
         Spacer(Modifier.height(8.dp))
