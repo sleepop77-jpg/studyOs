@@ -48,7 +48,11 @@ class LockdownService : Service() {
     private suspend fun poll() {
         while (true) {
             delay(1000L)
-            if (!LockdownManager.isEnabled(this)) continue
+            val armed = LockdownManager.isEnabled(this) && Timer.running.value
+            if (!armed) {
+                BustedOverlay.hide()
+                continue
+            }
             val now = System.currentTimeMillis()
             val events = usage?.queryEvents(lastCheck, now) ?: continue
             lastCheck = now
@@ -77,7 +81,7 @@ class LockdownService : Service() {
         val name = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
         } catch (_: Exception) { pkg }
-        val shown = BustedOverlay.show(this, name, penalty)
+        var shown = BustedOverlay.show(this, name, penalty)
         if (!shown) {
             try {
                 val intent = Intent(this, BustedActivity::class.java).apply {
@@ -85,11 +89,14 @@ class LockdownService : Service() {
                     putExtra("busted_app_name", name)
                 }
                 startActivity(intent)
+                shown = true
             } catch (_: Exception) { }
+        }
+        if (!shown) {
             val n = NotificationCompat.Builder(this, "lockdown_channel")
                 .setSmallIcon(android.R.drawable.ic_lock_lock)
                 .setContentTitle("BUSTED: $name")
-                .setContentText("+$penalty Shame and -10 Fame. Return to your session.")
+                .setContentText("+$penalty Shame and -10 Fame. Tap to return to your session.")
                 .setOngoing(false)
                 .build()
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(1102, n)
@@ -110,8 +117,8 @@ class LockdownService : Service() {
         )
         return NotificationCompat.Builder(this, "lockdown_channel")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
-            .setContentTitle("LOCKDOWN ACTIVE")
-            .setContentText("Distracting apps are sealed. Stay focused.")
+            .setContentTitle("LOCKDOWN ARMED")
+            .setContentText("Seals activate the moment your timer runs.")
             .setOngoing(true)
             .setContentIntent(pi)
             .build()
