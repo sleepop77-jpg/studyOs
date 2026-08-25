@@ -24,7 +24,7 @@ object SIcons {
     val Lock: ImageVector by lazy {
         icon {
             path(fill = SolidColor(Color.Black)) { moveTo(5f, 11f); lineTo(19f, 11f); lineTo(19f, 20f); lineTo(5f, 20f); close() }
-            path(stroke = SolidColor(Color.Black), strokeLineWidth = 2.2f, strokeLineCap = StrokeCap.Round) { moveTo(8f, 11f); lineTo(8f, 8f); arcTo(androidx.compose.ui.geometry.Rect(8f, 4f, 16f, 12f), 180f, 180f, false); lineTo(16f, 11f) }
+            path(stroke = SolidColor(Color.Black), strokeLineWidth = 2.2f, strokeLineCap = StrokeCap.Round) { moveTo(8f, 11f); lineTo(8f, 8f); arcTo(8f, 4f, 16f, 12f, 180f, 180f, false); lineTo(16f, 11f) }
         }
     }
     val Check: ImageVector by lazy {
