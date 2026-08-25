@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
 import com.example.studyos.ui.common.SIcons
+import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.AnimatedMascotPreview
 import com.example.studyos.ui.launcher.AnimatedSkins
 import com.example.studyos.ui.launcher.AnimatedThemePreview
@@ -54,7 +55,7 @@ fun StoreScreen(back: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     Column(
-        modifier = Modifier.fillMaxSize().background(com.example.studyos.ui.common.homeBrush())
+        modifier = Modifier.fillMaxSize().background(homeBrush())
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 24.dp, start = 4.dp, end = 16.dp),
@@ -73,21 +74,21 @@ fun StoreScreen(back: () -> Unit) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(Store.ITEMS, key = { it.id }) { item ->
                 val isUnlocked = unlocked.contains(item.id)
-                val isEquipped = (item.category == "Mascot" && eqMascot == item.id) || (item.category == "Theme" && eqTheme == item.id)
+                val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
 
                 Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfaceCream), modifier = Modifier.fillMaxWidth()) {
                     Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFE8706C).copy(alpha = 0.25f)), contentAlignment = Alignment.Center) {
                             when {
-                                item.category == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
-                                item.category == "Theme" -> AnimatedThemePreview(item.id, size = 56.dp)
+                                item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
+                                item.type == "Theme" -> AnimatedThemePreview(item.id, size = 56.dp)
                                 else -> Icon(SIcons.Bag, contentDescription = null, tint = Color(0xFFF5A623), modifier = Modifier.size(24.dp))
                             }
                         }
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = OnSurfaceDark)
-                            Text(item.desc, fontSize = 11.sp, color = OnSurfaceMuted)
+                            Text(item.description, fontSize = 11.sp, color = OnSurfaceMuted)
                         }
 
                         when {
@@ -98,7 +99,7 @@ fun StoreScreen(back: () -> Unit) {
                                 shape = RoundedCornerShape(12.dp)
                             ) { Text("${item.cost}", color = OnSurfaceDark, fontWeight = FontWeight.Black, fontSize = 13.sp) }
                             else -> Button(
-                                onClick = { Store.equip(item.category, item.id) },
+                                onClick = { Store.equip(item.id) },
                                 colors = ButtonDefaults.buttonColors(containerColor = if (isEquipped) SuccessGreen else AccentTeal),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
