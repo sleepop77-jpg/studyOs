@@ -122,29 +122,68 @@ fun LockdownScreen(back: () -> Unit) {
             .map { (pkg, label) -> AppEntry(pkg, label, ContextCompat.getDrawable(context, android.R.drawable.sym_def_app_icon)!!) }
         (installed + missing).sortedBy { it.label.lowercase() }
     }
+
     val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true) }
+
     val bgBrush = homeBrush()
 
     Column(Modifier.fillMaxSize().background(bgBrush)) {
         Row(
-            Modifier.fillMaxWidth().padding(top = 24.dp, start = 4.dp, end = 16.dp, bottom = 8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 32.dp, start = 8.dp, end = 20.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = back) { Icon(SIcons.Back, contentDescription = "Back", tint = Color.White) }
-            Text("APP BLOCKER", color = Color.White, fontWeight = FontWeight.Black, fontSize = 18.sp, letterSpacing = 2.sp)
+            IconButton(
+                onClick = back,
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.12f))
+            ) {
+                Icon(SIcons.Back, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(20.dp))
+            }
+            Text(
+                "APP BLOCKER",
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                fontSize = 20.sp,
+                letterSpacing = 1.5.sp,
+                modifier = Modifier.padding(start = 16.dp)
+            )
         }
+
         LazyColumn(
-            Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFF5E6E5)), modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Lockdown Mode", color = Color(0xFF2D2D2D), fontWeight = FontWeight.Black, fontSize = 16.sp)
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        Modifier.padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                "Lockdown Mode",
+                                color = Color.White,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 16.sp,
+                                letterSpacing = 0.5.sp
+                            )
                             Text(
                                 if (timerRunning) "Sealed while a focus session is running." else "Arms automatically when your timer runs. Opening a sealed app yanks you back and burns Shame.",
-                                color = Color(0xFF756565), fontSize = 11.sp
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 11.sp,
+                                lineHeight = 16.sp,
+                                letterSpacing = 0.2.sp
                             )
                         }
                         Switch(
@@ -160,18 +199,33 @@ fun LockdownScreen(back: () -> Unit) {
                     }
                 }
             }
+
             if (enabled && !hasAccess) {
                 item {
                     Button(
                         onClick = {
-                            try { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) } catch (_: Exception) { }
+                            try {
+                                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                            } catch (_: Exception) {
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
                         shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier.fillMaxWidth().height(46.dp)
-                    ) { Text("1. Grant Usage Access (detect apps)", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp) }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(
+                            "1. Grant Usage Access (detect apps)",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
                 }
             }
+
             if (enabled && !hasOverlay) {
                 item {
                     Button(
@@ -182,6 +236,7 @@ fun LockdownScreen(back: () -> Unit) {
                                     override fun onGranted(permissions: MutableList<String>, all: Boolean) {
                                         hasOverlay = all
                                     }
+
                                     override fun onDenied(permissions: MutableList<String>, never: Boolean) {
                                         hasOverlay = false
                                     }
@@ -189,10 +244,21 @@ fun LockdownScreen(back: () -> Unit) {
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
                         shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier.fillMaxWidth().height(46.dp)
-                    ) { Text("2. Allow Display Over Apps (BUSTED screen)", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp) }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(
+                            "2. Allow Display Over Apps (BUSTED screen)",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
                 }
             }
+
             item {
                 Button(
                     onClick = {
@@ -207,29 +273,71 @@ fun LockdownScreen(back: () -> Unit) {
                                         putExtra("busted_app_name", "Test App")
                                     }
                                 )
-                            } catch (_: Exception) { }
+                            } catch (_: Exception) {
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20B2AA)),
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth().height(46.dp)
-                ) { Text("TEST BUSTED SCREEN", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp) }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Text(
+                        "TEST BUSTED SCREEN",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        letterSpacing = 0.5.sp
+                    )
+                }
             }
+
             item {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    label = { Text("Search apps") },
+                    label = { Text("Search apps", color = Color.White.copy(alpha = 0.6f)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            item { Text("Sealed apps: ${blocked.size}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp) }
+
+            item {
+                Text(
+                    "Sealed apps: ${blocked.size}",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    letterSpacing = 0.5.sp
+                )
+            }
+
             items(filtered, key = { it.pkg }) { app ->
-                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.14f)), modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Image(bitmap = app.icon.toBitmap(48, 48).asImageBitmap(), contentDescription = null, modifier = Modifier.size(30.dp))
-                        Text(app.label, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, modifier = Modifier.weight(1f).padding(horizontal = 10.dp))
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            bitmap = app.icon.toBitmap(48, 48).asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            app.label,
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp,
+                            letterSpacing = 0.3.sp,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 12.dp)
+                        )
                         Checkbox(
                             checked = blocked.contains(app.pkg),
                             enabled = !timerRunning,
@@ -242,7 +350,8 @@ fun LockdownScreen(back: () -> Unit) {
                     }
                 }
             }
-            item { Spacer(Modifier.height(24.dp)) }
+
+            item { Spacer(Modifier.height(32.dp)) }
         }
     }
 }
