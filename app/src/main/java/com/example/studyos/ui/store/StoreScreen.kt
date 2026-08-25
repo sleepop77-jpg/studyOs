@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -105,7 +106,7 @@ fun StoreScreen(back: () -> Unit) {
         ) {
             items(Store.ITEMS, key = { it.id }) { item ->
                 val isUnlocked = unlocked.contains(item.id)
-                val isEquipped = (item.category == "Mascot" && eqMascot == item.id) || (item.category == "Theme" && eqTheme == item.id)
+                val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
 
                 Card(
                     shape = RoundedCornerShape(18.dp),
@@ -127,8 +128,8 @@ fun StoreScreen(back: () -> Unit) {
                             contentAlignment = Alignment.Center
                         ) {
                             when {
-                                item.category == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 60.dp)
-                                item.category == "Theme" -> AnimatedThemePreview(item.id, size = 60.dp)
+                                item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 60.dp)
+                                item.type == "Theme" -> AnimatedThemePreview(item.id, size = 60.dp)
                                 else -> Icon(SIcons.Bag, contentDescription = null, tint = Color(0xFFF5A623), modifier = Modifier.size(26.dp))
                             }
                         }
@@ -142,7 +143,7 @@ fun StoreScreen(back: () -> Unit) {
                                 letterSpacing = 0.3.sp
                             )
                             Text(
-                                item.desc,
+                                item.description,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.6f),
                                 lineHeight = 14.sp,
@@ -168,7 +169,7 @@ fun StoreScreen(back: () -> Unit) {
                             }
 
                             else -> Button(
-                                onClick = { Store.equip(item.category, item.id) },
+                                onClick = { Store.equip(item.id) },
                                 colors = ButtonDefaults.buttonColors(containerColor = if (isEquipped) SuccessGreen else AccentTeal),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.height(38.dp)
