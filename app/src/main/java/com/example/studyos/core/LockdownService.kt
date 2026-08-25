@@ -13,6 +13,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.studyos.MainActivity
 import com.example.studyos.ui.lockdown.BustedActivity
+import com.example.studyos.ui.lockdown.BustedOverlayContent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -82,16 +83,14 @@ class LockdownService : Service() {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
         } catch (_: Exception) { pkg }
         var shown = BustedOverlay.show(this) {
-            com.example.studyos.ui.theme.StudyOSTheme(darkTheme = false) {
-                com.example.studyos.ui.lockdown.BustedScreen(onReturn = {
-                    BustedOverlay.hide()
-                    try {
-                        val i = Intent(this@LockdownService, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        }
-                        startActivity(i)
-                    } catch (_: Exception) { }
-                })
+            BustedOverlayContent(name, penalty) {
+                BustedOverlay.hide()
+                try {
+                    val i = Intent(this@LockdownService, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                    startActivity(i)
+                } catch (_: Exception) { }
             }
         }
         if (!shown) {
@@ -108,7 +107,7 @@ class LockdownService : Service() {
             val n = NotificationCompat.Builder(this, "lockdown_channel")
                 .setSmallIcon(android.R.drawable.ic_lock_lock)
                 .setContentTitle("BUSTED: $name")
-                .setContentText("+$penalty Shame and -10 Fame. Tap to return to your session.")
+                .setContentText("+$penalty Shame and -10 Fame. Return to your session.")
                 .setOngoing(false)
                 .build()
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(1102, n)
