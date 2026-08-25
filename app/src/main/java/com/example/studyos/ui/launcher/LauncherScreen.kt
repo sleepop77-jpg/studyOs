@@ -34,9 +34,8 @@ import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.common.SIcons
+import com.example.studyos.ui.common.customShimmer
 import com.example.studyos.ui.common.homeBrush
-import com.valentinilk.shimmer.rememberShimmer
-import com.valentinilk.shimmer.shimmer
 
 @Composable
 fun LauncherScreen(nav: (String) -> Unit) {
