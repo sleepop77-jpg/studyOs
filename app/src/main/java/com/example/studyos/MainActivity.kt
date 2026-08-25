@@ -38,13 +38,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
+
         Economy.init(applicationContext)
         Timer.init()
         Store.init(applicationContext)
         Admin.init(applicationContext)
+
         if (LockdownManager.isEnabled(this) && LockdownManager.hasUsageAccess(this)) {
             ContextCompat.startForegroundService(this, Intent(this, LockdownService::class.java))
         }
+
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFD9534F))) {
                 StudyOSNav()
@@ -59,6 +62,7 @@ private fun StudyOSNav() {
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }
+
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -66,8 +70,13 @@ private fun StudyOSNav() {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
+
     var route by remember { mutableStateOf("launcher") }
-    BackHandler(enabled = route != "launcher") { route = "launcher" }
+
+    BackHandler(enabled = route != "launcher") {
+        route = "launcher"
+    }
+
     when (route) {
         "launcher" -> LauncherScreen(nav = { route = it })
         "pomodoro" -> PomodoroScreen(back = { route = "launcher" })
