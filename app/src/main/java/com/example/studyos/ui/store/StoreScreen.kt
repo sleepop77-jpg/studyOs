@@ -55,7 +55,7 @@ fun StoreScreen(back: () -> Unit) {
     val eqTheme by Store.equippedTheme.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
     Column(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFFD9534F), Color(0xFFC94440))))
+        modifier = Modifier.fillMaxSize().background(com.example.studyos.ui.common.homeBrush())
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 24.dp, start = 4.dp, end = 16.dp),
