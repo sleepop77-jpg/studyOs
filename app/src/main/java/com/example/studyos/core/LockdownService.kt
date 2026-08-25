@@ -38,18 +38,22 @@ class LockdownService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(1101, buildNotification())
+
         if (!polling) {
             polling = true
             lastCheck = System.currentTimeMillis()
             scope.launch { poll() }
         }
+
         return START_STICKY
     }
 
     private suspend fun poll() {
         while (true) {
             delay(1000L)
+
             val armed = LockdownManager.isEnabled(this) && Timer.running.value
+
             if (!armed) {
                 BustedOverlay.hide()
                 continue
@@ -70,6 +74,7 @@ class LockdownService : Service() {
             }
 
             val pkg = foreground ?: continue
+
             if (pkg == packageName) continue
             if (pkg == "com.android.systemui" || pkg == "com.android.launcher") continue
 
@@ -91,6 +96,8 @@ class LockdownService : Service() {
         } catch (_: Exception) {
             pkg
         }
+
+        StudyMarket.onUserBusted(name)
 
         var shown = BustedOverlay.show(this) {
             BustedOverlayContent(name, penalty) {
@@ -125,6 +132,7 @@ class LockdownService : Service() {
                 .setContentText("+$penalty Shame and -10 Fame. Return to your session.")
                 .setOngoing(false)
                 .build()
+
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(1102, n)
         }
     }
