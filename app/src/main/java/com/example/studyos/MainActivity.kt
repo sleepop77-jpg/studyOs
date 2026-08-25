@@ -36,12 +36,24 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = PrimaryCoral)) {
                 var route by remember { mutableStateOf("launcher") }
+                val isRunning by com.example.studyos.core.Timer.running.collectAsState()
+                
+                LaunchedEffect(isRunning) {
+                    val serviceIntent = Intent(this@MainActivity, LockdownService::class.java)
+                    if (isRunning && LockdownManager.isEnabled(this@MainActivity) && LockdownManager.hasUsageAccess(this@MainActivity)) {
+                        androidx.core.content.ContextCompat.startForegroundService(this@MainActivity, serviceIntent)
+                    } else {
+                        stopService(serviceIntent)
+                    }
+                }
+
                 BackHandler(enabled = route != "launcher") { route = "launcher" }
                 when (route) {
                     "launcher" -> LauncherScreen(nav = { route = it })
                     "pomodoro" -> PomodoroScreen(back = { route = "launcher" })
                     "store" -> StoreScreen(back = { route = "launcher" })
                     "settings" -> SettingsScreen(back = { route = "launcher" })
+                    "lockdown" -> LockdownScreen(back = { route = "launcher" })
                 }
             }
         }
