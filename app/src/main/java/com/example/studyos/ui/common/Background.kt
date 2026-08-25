@@ -47,6 +47,24 @@ fun homeBrush(): Brush {
             )
         )
 
+        "theme_void_nexus" -> Brush.verticalGradient(
+            listOf(
+                Color(0xFF000000),
+                Color(0xFF12001F),
+                Color(0xFF2A0647),
+                Color(0xFF000000)
+            )
+        )
+
+        "theme_sakura_drift" -> Brush.verticalGradient(
+            listOf(
+                Color(0xFF090409),
+                Color(0xFF2D1B2E),
+                Color(0xFF4A2545),
+                Color(0xFF090409)
+            )
+        )
+
         else -> Brush.verticalGradient(
             listOf(
                 Color(0xFF050505),
