@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.InteractiveMascot
@@ -69,11 +70,10 @@ fun PomodoroScreen(back: () -> Unit) {
     val bgBrush = homeBrush()
 
     Box(Modifier.fillMaxSize().background(bgBrush)) {
+        RedPatchesBackground()
+        
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -84,21 +84,12 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 IconButton(
                     onClick = back,
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.12f))
+                    modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f))
                 ) {
                     Icon(SIcons.Back, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(20.dp))
                 }
 
-                Text(
-                    subject,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    letterSpacing = 0.5.sp
-                )
+                Text(subject, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 0.5.sp)
 
                 Spacer(Modifier.size(42.dp))
             }
@@ -112,25 +103,16 @@ fun PomodoroScreen(back: () -> Unit) {
                 )
             }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     String.format("%02d:%02d", seconds / 60, seconds % 60),
-                    color = Color.White,
-                    fontSize = 56.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 3.sp,
-                    textAlign = TextAlign.Center
+                    color = Color.White, fontSize = 56.sp, fontWeight = FontWeight.Black, letterSpacing = 3.sp, textAlign = TextAlign.Center
                 )
 
                 Text(
                     if (running) "FOCUSING" else "READY",
                     color = if (running) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.6f),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp
+                    fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp
                 )
             }
 
@@ -141,25 +123,14 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 IconButton(
                     onClick = { Timer.reset() },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.08f))
+                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.08f))
                 ) {
-                    Icon(
-                        SIcons.Back,
-                        contentDescription = "Reset",
-                        tint = Color.White.copy(alpha = 0.9f),
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(SIcons.Back, contentDescription = "Reset", tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(24.dp))
                 }
 
                 IconButton(
                     onClick = { Timer.toggle() },
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
+                    modifier = Modifier.size(72.dp).clip(CircleShape).background(Color.White)
                 ) {
                     Icon(
                         if (running) SIcons.Pause else SIcons.Play,
@@ -172,10 +143,7 @@ fun PomodoroScreen(back: () -> Unit) {
                 Spacer(Modifier.size(48.dp))
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(15, 25, 45, 60, 90, 180).forEach { mins ->
                     val isSelected = total == mins * 60
 
@@ -183,17 +151,12 @@ fun PomodoroScreen(back: () -> Unit) {
                         onClick = { Timer.setMinutes(mins) },
                         shape = RoundedCornerShape(14.dp),
                         color = if (isSelected) Color.White else Color.White.copy(alpha = 0.08f),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
+                        modifier = Modifier.weight(1f).height(40.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                "${mins}m",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color(0xFF4A2C2C) else Color.White,
-                                letterSpacing = 0.5.sp
+                                "${mins}m", fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color(0xFF4A2C2C) else Color.White, letterSpacing = 0.5.sp
                             )
                         }
                     }
@@ -201,20 +164,11 @@ fun PomodoroScreen(back: () -> Unit) {
             }
 
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.06f))
-                    .padding(14.dp)
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.06f)).padding(14.dp)
             ) {
                 Text(
                     "Leaving the app voids the session. Finishing banks Fame.",
-                    color = Color.White.copy(alpha = 0.65f),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.3.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.3.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -224,13 +178,10 @@ fun PomodoroScreen(back: () -> Unit) {
                 modifier = Modifier.fillMaxSize(),
                 parties = listOf(
                     Party(
-                        speed = 0f,
-                        maxSpeed = 30f,
-                        damping = 0.9f,
-                        spread = Spread.ROUND,
+                        speed = 0f, maxSpeed = 30f, damping = 0.9f, spread = Spread.ROUND,
                         colors = listOf(0xFFFFD700.toInt(), 0xFFD9534F.toInt(), 0xFF4CAF50.toInt(), 0xFF20B2AA.toInt()),
-                        emitter = Emitter(100L, TimeUnit.MILLISECONDS).max(100),
-                        position = Position.Relative(0.5, 0.0)
+                        emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
+                        position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
                     )
                 )
             )
