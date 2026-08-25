@@ -54,6 +54,7 @@ import com.example.studyos.core.BustedOverlay
 import com.example.studyos.core.LockdownManager
 import com.example.studyos.core.LockdownService
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import com.hjq.permissions.OnPermissionCallback
@@ -126,233 +127,153 @@ fun LockdownScreen(back: () -> Unit) {
 
     val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true) }
 
-    val bgBrush = homeBrush()
-
-    Column(Modifier.fillMaxSize().background(bgBrush)) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 32.dp, start = 8.dp, end = 20.dp, bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = back,
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.12f))
+    Box(Modifier.fillMaxSize().background(homeBrush())) {
+        RedPatchesBackground()
+        
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 32.dp, start = 8.dp, end = 20.dp, bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(SIcons.Back, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(20.dp))
-            }
-            Text(
-                "APP BLOCKER",
-                color = Color.White,
-                fontWeight = FontWeight.Black,
-                fontSize = 20.sp,
-                letterSpacing = 1.5.sp,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
-
-        LazyColumn(
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            item {
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
-                    modifier = Modifier.fillMaxWidth()
+                IconButton(
+                    onClick = back,
+                    modifier = Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.12f))
                 ) {
-                    Row(
-                        Modifier.padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(
-                                "Lockdown Mode",
-                                color = Color.White,
-                                fontWeight = FontWeight.Black,
-                                fontSize = 16.sp,
-                                letterSpacing = 0.5.sp
-                            )
-                            Text(
-                                if (timerRunning) "Sealed while a focus session is running." else "Arms automatically when your timer runs. Opening a sealed app yanks you back and burns Shame.",
-                                color = Color.White.copy(alpha = 0.6f),
-                                fontSize = 11.sp,
-                                lineHeight = 16.sp,
-                                letterSpacing = 0.2.sp
-                            )
-                        }
-                        Switch(
-                            checked = enabled,
-                            enabled = !timerRunning,
-                            onCheckedChange = {
-                                enabled = it
-                                LockdownManager.setEnabled(context, it)
-                                syncService()
-                            },
-                            colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFFD9534F))
-                        )
-                    }
+                    Icon(SIcons.Back, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(20.dp))
                 }
+                Text(
+                    "APP BLOCKER", color = Color.White, fontWeight = FontWeight.Black, fontSize = 20.sp, letterSpacing = 1.5.sp,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
             }
 
-            if (enabled && !hasAccess) {
+            LazyColumn(
+                Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
                 item {
-                    Button(
-                        onClick = {
-                            try {
-                                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                            } catch (_: Exception) {
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            "1. Grant Usage Access (detect apps)",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-                }
-            }
-
-            if (enabled && !hasOverlay) {
-                item {
-                    Button(
-                        onClick = {
-                            XXPermissions.with(context)
-                                .permission(Permission.SYSTEM_ALERT_WINDOW)
-                                .request(object : OnPermissionCallback {
-                                    override fun onGranted(permissions: MutableList<String>, all: Boolean) {
-                                        hasOverlay = all
-                                    }
-
-                                    override fun onDenied(permissions: MutableList<String>, never: Boolean) {
-                                        hasOverlay = false
-                                    }
-                                })
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                    ) {
-                        Text(
-                            "2. Allow Display Over Apps (BUSTED screen)",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-                }
-            }
-
-            item {
-                Button(
-                    onClick = {
-                        val ok = BustedOverlay.show(context) {
-                            BustedOverlayContent("Test App", 3) { BustedOverlay.hide() }
-                        }
-                        if (!ok) {
-                            try {
-                                context.startActivity(
-                                    Intent(context, BustedActivity::class.java).apply {
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                        putExtra("busted_app_name", "Test App")
-                                    }
+                        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("Lockdown Mode", color = Color.White, fontWeight = FontWeight.Black, fontSize = 16.sp, letterSpacing = 0.5.sp)
+                                Text(
+                                    if (timerRunning) "Sealed while a focus session is running." else "Arms automatically when your timer runs. Opening a sealed app yanks you back and burns Shame.",
+                                    color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.2.sp
                                 )
-                            } catch (_: Exception) {
                             }
+                            Switch(
+                                checked = enabled,
+                                enabled = !timerRunning,
+                                onCheckedChange = {
+                                    enabled = it
+                                    LockdownManager.setEnabled(context, it)
+                                    syncService()
+                                },
+                                colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFFD9534F))
+                            )
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20B2AA)),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                ) {
-                    Text(
-                        "TEST BUSTED SCREEN",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
-                        letterSpacing = 0.5.sp
+                    }
+                }
+
+                if (enabled && !hasAccess) {
+                    item {
+                        Button(
+                            onClick = {
+                                try { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) } catch (_: Exception) { }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) { Text("1. Grant Usage Access (detect apps)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, letterSpacing = 0.5.sp) }
+                    }
+                }
+
+                if (enabled && !hasOverlay) {
+                    item {
+                        Button(
+                            onClick = {
+                                XXPermissions.with(context)
+                                    .permission(Permission.SYSTEM_ALERT_WINDOW)
+                                    .request(object : OnPermissionCallback {
+                                        override fun onGranted(permissions: MutableList<String>, all: Boolean) { hasOverlay = all }
+                                        override fun onDenied(permissions: MutableList<String>, never: Boolean) { hasOverlay = false }
+                                    })
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC41C3B)),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) { Text("2. Allow Display Over Apps (BUSTED screen)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, letterSpacing = 0.5.sp) }
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            val ok = BustedOverlay.show(context) {
+                                BustedOverlayContent("Test App", 3) { BustedOverlay.hide() }
+                            }
+                            if (!ok) {
+                                try {
+                                    context.startActivity(
+                                        Intent(context, BustedActivity::class.java).apply {
+                                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                            putExtra("busted_app_name", "Test App")
+                                        }
+                                    )
+                                } catch (_: Exception) { }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF20B2AA)),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) { Text("TEST BUSTED SCREEN", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, letterSpacing = 0.5.sp) }
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        label = { Text("Search apps", color = Color.White.copy(alpha = 0.6f)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
 
-            item {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    label = { Text("Search apps", color = Color.White.copy(alpha = 0.6f)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+                item {
+                    Text("Sealed apps: ${blocked.size}", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 0.5.sp)
+                }
 
-            item {
-                Text(
-                    "Sealed apps: ${blocked.size}",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    letterSpacing = 0.5.sp
-                )
-            }
-
-            items(filtered, key = { it.pkg }) { app ->
-                Card(
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                items(filtered, key = { it.pkg }) { app ->
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Image(
-                            bitmap = app.icon.toBitmap(48, 48).asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Text(
-                            app.label,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            letterSpacing = 0.3.sp,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 12.dp)
-                        )
-                        Checkbox(
-                            checked = blocked.contains(app.pkg),
-                            enabled = !timerRunning,
-                            onCheckedChange = { add ->
-                                blocked = if (add) blocked + app.pkg else blocked - app.pkg
-                                LockdownManager.setBlockedPackages(context, blocked)
-                            },
-                            colors = CheckboxDefaults.colors(checkedColor = Color(0xFFD9534F))
-                        )
+                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Image(bitmap = app.icon.toBitmap(48, 48).asImageBitmap(), contentDescription = null, modifier = Modifier.size(32.dp))
+                            Text(
+                                app.label, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, letterSpacing = 0.3.sp,
+                                modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
+                            )
+                            Checkbox(
+                                checked = blocked.contains(app.pkg),
+                                enabled = !timerRunning,
+                                onCheckedChange = { add ->
+                                    blocked = if (add) blocked + app.pkg else blocked - app.pkg
+                                    LockdownManager.setBlockedPackages(context, blocked)
+                                },
+                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFFD9534F))
+                            )
+                        }
                     }
                 }
-            }
 
-            item { Spacer(Modifier.height(32.dp)) }
+                item { Spacer(Modifier.height(32.dp)) }
+            }
         }
     }
 }
