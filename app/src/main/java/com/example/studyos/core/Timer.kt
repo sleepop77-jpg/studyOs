@@ -30,8 +30,11 @@ object Timer {
                     } else {
                         running.value = false
                         Economy.studying.value = false
+
                         val mins = total.value / 60
                         Economy.addFame(mins * 2)
+                        StudyMarket.onUserSessionCompleted(mins, strict.value)
+
                         seconds.value = total.value
                     }
                 }
@@ -49,6 +52,7 @@ object Timer {
 
     fun setMinutes(m: Int) {
         if (!canControl()) return
+
         val clamped = m.coerceIn(1, 480)
         total.value = clamped * 60
         seconds.value = clamped * 60
@@ -58,13 +62,16 @@ object Timer {
 
     fun toggle() {
         if (!canControl()) return
+
         running.value = !running.value
         Economy.studying.value = running.value
+
         if (!running.value) Economy.continuousSecs.value = 0
     }
 
     fun reset() {
         if (!canControl()) return
+
         running.value = false
         Economy.studying.value = false
         seconds.value = total.value
