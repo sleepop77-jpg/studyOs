@@ -13,9 +13,11 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 class OverlayLifecycleOwner : LifecycleOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -40,8 +42,8 @@ object BustedOverlay {
         Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context)
 
     @Suppress("DEPRECATION")
-    fun show(context: Context, content: @Composable () -> Unit) {
-        if (!canShow(context)) return
+    fun show(context: Context, content: @Composable () -> Unit): Boolean {
+        if (!canShow(context)) return false
         val app = context.applicationContext
         handler.post {
             if (view != null) return@post
@@ -74,6 +76,7 @@ object BustedOverlay {
                 owner = null
             }
         }
+        return true
     }
 
     fun hide() {
