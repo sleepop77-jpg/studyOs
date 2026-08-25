@@ -44,12 +44,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.MainActivity
+import com.example.studyos.ui.common.ConfettiRain
 import com.example.studyos.ui.launcher.InteractiveMascot
 import com.example.studyos.ui.launcher.MascotState
-import java.util.concurrent.TimeUnit
-import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.core.Emitter
-import nl.dionsegijn.konfetti.core.Particle
 
 class BustedActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,14 +104,9 @@ private fun SuperBustedContent(appName: String, onReturn: () -> Unit) {
                 )
             )
     ) {
-        KonfettiView(
-            modifier = Modifier.fillMaxSize(),
-            particles = listOf(
-                Particle()
-                    .setColors(listOf(0xFFC41C3B, 0xFF8B0000, 0xFFFF5252, 0xFF2B0503))
-                    .setFadeOutEnabled(true)
-            ),
-            emitter = Emitter(duration = 1800, TimeUnit.MILLISECONDS).max(220)
+        ConfettiRain(
+            colors = listOf(0xFFC41C3B, 0xFF8B0000, 0xFFFF5252, 0xFF2B0503),
+            active = true
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
