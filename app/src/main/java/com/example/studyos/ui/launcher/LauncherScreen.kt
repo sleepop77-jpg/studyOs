@@ -117,7 +117,8 @@ fun LauncherScreen(nav: (String) -> Unit) {
         Text("STUDYOS APPLICATIONS", color = Color.White.copy(alpha = 0.9f), fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 1.2.sp, modifier = Modifier.padding(horizontal = 18.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             AppTile(SIcons.Timer, "Timer", Color(0xFFD9534F)) { nav("pomodoro") }
-            AppTile(SIcons.Bag, "Fame Store", Color(0xFFFFD700)) { nav("store") }
+            AppTile(SIcons.Lock, "Blocker", Color(0xFF4A2C2C)) { nav("lockdown") }
+            AppTile(SIcons.Bag, "Store", Color(0xFFFFD700)) { nav("store") }
         }
         Spacer(Modifier.weight(1f))
     }
