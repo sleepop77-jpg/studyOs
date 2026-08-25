@@ -1,15 +1,6 @@
 package com.example.studyos.ui.pomodoro
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,22 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,19 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Timer
-import com.example.studyos.ui.common.LeftToRightSweep
-import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.InteractiveMascot
@@ -67,25 +42,20 @@ import com.example.studyos.ui.launcher.MascotState
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
 import nl.dionsegijn.konfetti.compose.KonfettiView
+import nl.dionsegijn.konfetti.core.Emitter
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.Spread
-import nl.dionsegijn.konfetti.core.emitter.Emitter
 
 @Composable
 fun PomodoroScreen(back: () -> Unit) {
     val seconds by Timer.seconds.collectAsState()
     val total by Timer.total.collectAsState()
     val running by Timer.running.collectAsState()
-    val strict by Timer.strict.collectAsState()
     val subject by Timer.subject.collectAsState()
-    val canControl = !(strict && running)
 
     var celebrate by remember { mutableStateOf(false) }
     var wasRunning by remember { mutableStateOf(false) }
-    var sliderMinutes by remember(total) {
-        mutableStateOf((total / 60).toFloat().coerceIn(1f, 180f))
-    }
 
     LaunchedEffect(running) {
         if (wasRunning && !running && seconds >= total) {
@@ -96,30 +66,16 @@ fun PomodoroScreen(back: () -> Unit) {
         wasRunning = running
     }
 
-    BackHandler(enabled = strict && running) { }
-
     val bgBrush = homeBrush()
-    val progress = if (total > 0) 1f - (seconds.toFloat() / total.toFloat()) else 0f
-    val potentialFame = (total / 60) * 2
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgBrush)
-    ) {
-        RedPatchesBackground()
-
-        if (running) {
-            LeftToRightSweep()
-        }
-
+    Box(Modifier.fillMaxSize().background(bgBrush)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -128,332 +84,139 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 IconButton(
                     onClick = back,
-                    enabled = canControl,
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1A0505).copy(alpha = 0.9f))
+                        .background(Color.White.copy(alpha = 0.12f))
                 ) {
-                    Icon(
-                        imageVector = SIcons.Back,
-                        contentDescription = "Back",
-                        tint = if (canControl) Color.White else Color.White.copy(alpha = 0.35f)
-                    )
+                    Icon(SIcons.Back, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(20.dp))
                 }
 
                 Text(
-                    text = subject,
+                    subject,
                     color = Color.White,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 14.sp,
-                    letterSpacing = 1.sp
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    letterSpacing = 0.5.sp
                 )
 
-                Spacer(modifier = Modifier.size(40.dp))
+                Spacer(Modifier.size(42.dp))
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF0D0505).copy(alpha = 0.9f))
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "STRICT MODE",
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        letterSpacing = 1.sp
-                    )
-
-                    Text(
-                        text = if (strict && running) {
-                            "Locked. No pause/reset until finished."
-                        } else if (strict) {
-                            "Once started, this session cannot be paused."
-                        } else {
-                            "Normal timer controls."
-                        },
-                        color = Color.White.copy(alpha = 0.72f),
-                        fontSize = 11.sp
-                    )
-                }
-
-                Switch(
-                    checked = strict,
-                    onCheckedChange = { Timer.setStrict(it) },
-                    enabled = !(running && strict),
-                    colors = SwitchDefaults.colors(
-                        checkedTrackColor = Color(0xFFE53935),
-                        checkedThumbColor = Color.White,
-                        uncheckedTrackColor = Color.White.copy(alpha = 0.25f),
-                        uncheckedThumbColor = Color.White
-                    )
-                )
-            }
-
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF0D0505).copy(alpha = 0.9f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    StatusRow(
-                        label = "SESSION",
-                        value = if (running) "ACTIVE" else "READY",
-                        valueColor = if (running) Color(0xFF4CAF50) else Color(0xFFFF5252)
-                    )
-
-                    StatusRow(
-                        label = "STRICT",
-                        value = if (strict) "ON" else "OFF",
-                        valueColor = if (strict) Color(0xFFE53935) else Color.White.copy(alpha = 0.75f)
-                    )
-
-                    StatusRow(
-                        label = "POTENTIAL FAME",
-                        value = "+$potentialFame",
-                        valueColor = Color(0xFFFFD700)
-                    )
-
-                    StatusRow(
-                        label = "PROGRESS",
-                        value = "${(progress * 100f).toInt()}%",
-                        valueColor = Color.White
-                    )
-                }
-            }
-
-            LeftToRightProgressBar(progress = progress)
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(230.dp)
-            ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(240.dp)) {
                 InteractiveMascot(
                     state = if (running) MascotState.STUDYING else MascotState.IDLE,
-                    size = 220.dp,
+                    size = 240.dp,
                     showArc = true,
                     progressArc = if (total > 0) seconds.toFloat() / total.toFloat() else 1f
                 )
             }
 
-            Text(
-                text = String.format("%02d:%02d", seconds / 60, seconds % 60),
-                style = TextStyle(
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                    textAlign = TextAlign.Center,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    String.format("%02d:%02d", seconds / 60, seconds % 60),
                     color = Color.White,
-                    shadow = Shadow(
-                        color = Color(0xFFC41C3B).copy(alpha = 0.65f),
-                        offset = Offset(0f, 0f),
-                        blurRadius = 28f
-                    )
+                    fontSize = 56.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 3.sp,
+                    textAlign = TextAlign.Center
                 )
-            )
+
+                Text(
+                    if (running) "FOCUSING" else "READY",
+                    color = if (running) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.6f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
+                )
+            }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(28.dp),
+                horizontalArrangement = Arrangement.spacedBy(32.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 IconButton(
                     onClick = { Timer.reset() },
-                    enabled = canControl,
                     modifier = Modifier
-                        .size(46.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1A0505).copy(alpha = 0.9f))
+                        .background(Color.White.copy(alpha = 0.08f))
                 ) {
                     Icon(
-                        imageVector = SIcons.Back,
+                        SIcons.Back,
                         contentDescription = "Reset",
-                        tint = if (canControl) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.35f),
+                        tint = Color.White.copy(alpha = 0.9f),
                         modifier = Modifier.size(24.dp)
                     )
                 }
 
                 IconButton(
                     onClick = { Timer.toggle() },
-                    enabled = canControl,
                     modifier = Modifier
-                        .size(70.dp)
+                        .size(72.dp)
                         .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(
-                                    Color(0xFFB71C1C),
-                                    Color(0xFFE53935)
-                                )
-                            )
-                        )
+                        .background(Color.White)
                 ) {
                     Icon(
-                        imageVector = if (running) SIcons.Pause else SIcons.Play,
+                        if (running) SIcons.Pause else SIcons.Play,
                         contentDescription = if (running) "Pause" else "Play",
-                        tint = if (canControl) Color.White else Color.White.copy(alpha = 0.4f),
+                        tint = Color(0xFFD9534F),
                         modifier = Modifier.size(36.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.size(46.dp))
+                Spacer(Modifier.size(48.dp))
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(15, 25, 45, 60, 90, 180).forEach { mins ->
                     val isSelected = total == mins * 60
 
                     Surface(
-                        onClick = {
-                            if (canControl) {
-                                Timer.setMinutes(mins)
-                                sliderMinutes = mins.toFloat()
-                            }
-                        },
+                        onClick = { Timer.setMinutes(mins) },
                         shape = RoundedCornerShape(14.dp),
-                        color = if (isSelected && canControl) {
-                            Color(0xFFE53935)
-                        } else {
-                            Color(0xFF140808).copy(alpha = 0.9f)
-                        },
-                        modifier = Modifier.height(34.dp)
+                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.08f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
                     ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        ) {
+                        Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text = "${mins}m",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White
+                                "${mins}m",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color(0xFF4A2C2C) else Color.White,
+                                letterSpacing = 0.5.sp
                             )
                         }
                     }
                 }
             }
 
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF0D0505).copy(alpha = 0.9f)
-                ),
-                modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .padding(14.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "CUSTOM TIMER",
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        letterSpacing = 1.sp
-                    )
-
-                    Text(
-                        text = "Max 3 hours (180 minutes).",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 11.sp
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        TimerAdjustButton(
-                            text = "-5",
-                            enabled = canControl,
-                            modifier = Modifier.width(64.dp)
-                        ) {
-                            sliderMinutes = (sliderMinutes - 5f).coerceIn(1f, 180f)
-                        }
-
-                        Text(
-                            text = "${sliderMinutes.toInt()} min",
-                            color = Color.White,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 16.sp,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
-                        )
-
-                        TimerAdjustButton(
-                            text = "+5",
-                            enabled = canControl,
-                            modifier = Modifier.width(64.dp)
-                        ) {
-                            sliderMinutes = (sliderMinutes + 5f).coerceIn(1f, 180f)
-                        }
-                    }
-
-                    Slider(
-                        value = sliderMinutes,
-                        onValueChange = { sliderMinutes = it.coerceIn(1f, 180f) },
-                        valueRange = 1f..180f,
-                        enabled = canControl,
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFFE53935),
-                            activeTrackColor = Color(0xFFE53935),
-                            inactiveTrackColor = Color.White.copy(alpha = 0.12f)
-                        )
-                    )
-
-                    Button(
-                        onClick = { Timer.setMinutes(sliderMinutes.toInt()) },
-                        enabled = canControl && sliderMinutes.toInt() != total / 60,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFE53935),
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(46.dp)
-                    ) {
-                        Text(
-                            text = "SET CUSTOM TIMER",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 13.sp,
-                            letterSpacing = 1.sp
-                        )
-                    }
-                }
+                Text(
+                    "Leaving the app voids the session. Finishing banks Fame.",
+                    color = Color.White.copy(alpha = 0.65f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.3.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-
-            Text(
-                text = if (strict && running) {
-                    "Strict session active. It will not pause. Finishing banks Fame."
-                } else {
-                    "Leaving the app voids the session. Finishing banks Fame."
-                },
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 11.sp
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
         }
 
         if (celebrate) {
@@ -465,120 +228,12 @@ fun PomodoroScreen(back: () -> Unit) {
                         maxSpeed = 30f,
                         damping = 0.9f,
                         spread = Spread.ROUND,
-                        colors = listOf(
-                            0xFFFFD700.toInt(),
-                            0xFFE53935.toInt(),
-                            0xFF4CAF50.toInt(),
-                            0xFF20B2AA.toInt()
-                        ),
-                        emitter = Emitter(100L, TimeUnit.MILLISECONDS).max(100),
-                        position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0))
+                        colors = listOf(0xFFFFD700.toInt(), 0xFFD9534F.toInt(), 0xFF4CAF50.toInt(), 0xFF20B2AA.toInt()),
+                        emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
+                        position = Position.Top()
                     )
                 )
             )
         }
-    }
-}
-
-@Composable
-private fun StatusRow(label: String, value: String, valueColor: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            color = Color.White.copy(alpha = 0.65f),
-            fontSize = 11.sp
-        )
-
-        Text(
-            text = value,
-            color = valueColor,
-            fontWeight = FontWeight.Black,
-            fontSize = 12.sp
-        )
-    }
-}
-
-@Composable
-private fun LeftToRightProgressBar(progress: Float) {
-    val transition = rememberInfiniteTransition(label = "progress_shine")
-    val shine by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1400, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "progress_shine_phase"
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(12.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color.White.copy(alpha = 0.08f))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(progress.coerceIn(0f, 1f))
-                .height(12.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(
-                            Color(0xFF7F0F1F),
-                            Color(0xFFE53935)
-                        )
-                    )
-                )
-        )
-
-        Canvas(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val shineWidth = size.width * 0.18f
-            val x = shine * (size.width + shineWidth) - shineWidth
-
-            drawRect(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color.White.copy(alpha = 0.35f),
-                        Color.Transparent
-                    ),
-                    startX = x,
-                    endX = x + shineWidth
-                ),
-                topLeft = Offset(x, 0f),
-                size = Size(shineWidth, size.height)
-            )
-        }
-    }
-}
-
-@Composable
-private fun TimerAdjustButton(
-    text: String,
-    enabled: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF1A0505),
-            contentColor = Color.White
-        ),
-        shape = RoundedCornerShape(10.dp),
-        modifier = modifier.height(36.dp)
-    ) {
-        Text(
-            text = text,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Black
-        )
     }
 }
