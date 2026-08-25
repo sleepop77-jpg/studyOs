@@ -41,9 +41,7 @@ import com.example.studyos.ui.launcher.AnimatedThemePreview
 import com.example.studyos.ui.theme.AccentTeal
 import com.example.studyos.ui.theme.FameGold
 import com.example.studyos.ui.theme.OnSurfaceDark
-import com.example.studyos.ui.theme.OnSurfaceMuted
 import com.example.studyos.ui.theme.SuccessGreen
-import com.example.studyos.ui.theme.SurfaceCream
 import kotlinx.coroutines.launch
 
 @Composable
@@ -76,7 +74,7 @@ fun StoreScreen(back: () -> Unit) {
                 val isUnlocked = unlocked.contains(item.id)
                 val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
 
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfaceCream), modifier = Modifier.fillMaxWidth()) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)), modifier = Modifier.fillMaxWidth()) {
                     Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFE8706C).copy(alpha = 0.25f)), contentAlignment = Alignment.Center) {
                             when {
@@ -87,8 +85,8 @@ fun StoreScreen(back: () -> Unit) {
                         }
 
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = OnSurfaceDark)
-                            Text(item.description, fontSize = 11.sp, color = OnSurfaceMuted)
+                            Text(item.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+                            Text(item.description, fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
                         }
 
                         when {
