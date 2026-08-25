@@ -36,6 +36,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = PrimaryCoral)) {
                 var route by remember { mutableStateOf("launcher") }
+                val notifLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                    contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+                ) { }
+                LaunchedEffect(Unit) {
+                    if (android.os.Build.VERSION.SDK_INT >= 33 &&
+                        androidx.core.content.ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            android.Manifest.permission.POST_NOTIFICATIONS
+                        ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                    ) {
+                        notifLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
                 LaunchedEffect(Unit) {
                     val serviceIntent = Intent(this@MainActivity, LockdownService::class.java)
                     if (LockdownManager.isEnabled(this@MainActivity) && LockdownManager.hasUsageAccess(this@MainActivity)) {
