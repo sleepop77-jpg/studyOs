@@ -72,7 +72,7 @@ object StudyMarket {
     fun init(context: Context) {
         if (started) return
         started = true
-        prefs = context.getSharedPreferences("studyos_market", Context.MODE_PRIVATE)
+        prefs = context.applicationContext.getSharedPreferences("studyos_market", Context.MODE_PRIVATE)
         load()
         ensureStocks()
 
@@ -160,6 +160,13 @@ object StudyMarket {
         saveWallet()
 
         return fame
+    }
+
+    fun addAdminWalnuts(amount: Double) {
+        ensureStocks()
+        timerWalnuts.value += amount
+        addEvent("Admin added ${amount.toInt()} Golden Walnuts", true)
+        saveWallet()
     }
 
     fun onUserSessionCompleted(minutes: Int, strict: Boolean) {
