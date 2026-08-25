@@ -1,6 +1,13 @@
 package com.example.studyos.ui.pomodoro
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -13,12 +20,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -33,12 +47,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.LeftToRightSweep
+import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.InteractiveMascot
@@ -62,6 +83,9 @@ fun PomodoroScreen(back: () -> Unit) {
 
     var celebrate by remember { mutableStateOf(false) }
     var wasRunning by remember { mutableStateOf(false) }
+    var sliderMinutes by remember(total) {
+        mutableStateOf((total / 60).toFloat().coerceIn(1f, 180f))
+    }
 
     LaunchedEffect(running) {
         if (wasRunning && !running && seconds >= total) {
@@ -75,12 +99,20 @@ fun PomodoroScreen(back: () -> Unit) {
     BackHandler(enabled = strict && running) { }
 
     val bgBrush = homeBrush()
+    val progress = if (total > 0) 1f - (seconds.toFloat() / total.toFloat()) else 0f
+    val potentialFame = (total / 60) * 2
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(bgBrush)
     ) {
+        RedPatchesBackground()
+
+        if (running) {
+            LeftToRightSweep()
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,7 +132,7 @@ fun PomodoroScreen(back: () -> Unit) {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f))
+                        .background(Color(0xFF1A0505).copy(alpha = 0.9f))
                 ) {
                     Icon(
                         imageVector = SIcons.Back,
@@ -112,8 +144,9 @@ fun PomodoroScreen(back: () -> Unit) {
                 Text(
                     text = subject,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontWeight = FontWeight.Black,
+                    fontSize = 14.sp,
+                    letterSpacing = 1.sp
                 )
 
                 Spacer(modifier = Modifier.size(40.dp))
@@ -123,7 +156,7 @@ fun PomodoroScreen(back: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.16f))
+                    .background(Color(0xFF0D0505).copy(alpha = 0.9f))
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -145,7 +178,7 @@ fun PomodoroScreen(back: () -> Unit) {
                         } else {
                             "Normal timer controls."
                         },
-                        color = Color.White.copy(alpha = 0.75f),
+                        color = Color.White.copy(alpha = 0.72f),
                         fontSize = 11.sp
                     )
                 }
@@ -155,13 +188,54 @@ fun PomodoroScreen(back: () -> Unit) {
                     onCheckedChange = { Timer.setStrict(it) },
                     enabled = !(running && strict),
                     colors = SwitchDefaults.colors(
-                        checkedTrackColor = Color(0xFFC41C3B),
+                        checkedTrackColor = Color(0xFFE53935),
                         checkedThumbColor = Color.White,
-                        uncheckedTrackColor = Color.White.copy(alpha = 0.3f),
+                        uncheckedTrackColor = Color.White.copy(alpha = 0.25f),
                         uncheckedThumbColor = Color.White
                     )
                 )
             }
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF0D0505).copy(alpha = 0.9f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    StatusRow(
+                        label = "SESSION",
+                        value = if (running) "ACTIVE" else "READY",
+                        valueColor = if (running) Color(0xFF4CAF50) else Color(0xFFFF5252)
+                    )
+
+                    StatusRow(
+                        label = "STRICT",
+                        value = if (strict) "ON" else "OFF",
+                        valueColor = if (strict) Color(0xFFE53935) else Color.White.copy(alpha = 0.75f)
+                    )
+
+                    StatusRow(
+                        label = "POTENTIAL FAME",
+                        value = "+$potentialFame",
+                        valueColor = Color(0xFFFFD700)
+                    )
+
+                    StatusRow(
+                        label = "PROGRESS",
+                        value = "${(progress * 100f).toInt()}%",
+                        valueColor = Color.White
+                    )
+                }
+            }
+
+            LeftToRightProgressBar(progress = progress)
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -177,11 +251,18 @@ fun PomodoroScreen(back: () -> Unit) {
 
             Text(
                 text = String.format("%02d:%02d", seconds / 60, seconds % 60),
-                color = Color.White,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
-                textAlign = TextAlign.Center
+                style = TextStyle(
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color.White,
+                    shadow = Shadow(
+                        color = Color(0xFFC41C3B).copy(alpha = 0.65f),
+                        offset = Offset(0f, 0f),
+                        blurRadius = 28f
+                    )
+                )
             )
 
             Row(
@@ -192,13 +273,16 @@ fun PomodoroScreen(back: () -> Unit) {
                 IconButton(
                     onClick = { Timer.reset() },
                     enabled = canControl,
-                    modifier = Modifier.size(46.dp)
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF1A0505).copy(alpha = 0.9f))
                 ) {
                     Icon(
                         imageVector = SIcons.Back,
                         contentDescription = "Reset",
                         tint = if (canControl) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.35f),
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
@@ -206,14 +290,21 @@ fun PomodoroScreen(back: () -> Unit) {
                     onClick = { Timer.toggle() },
                     enabled = canControl,
                     modifier = Modifier
-                        .size(64.dp)
+                        .size(70.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    Color(0xFFB71C1C),
+                                    Color(0xFFE53935)
+                                )
+                            )
+                        )
                 ) {
                     Icon(
                         imageVector = if (running) SIcons.Pause else SIcons.Play,
                         contentDescription = if (running) "Pause" else "Play",
-                        tint = if (canControl) Color(0xFFD9534F) else Color(0xFFD9534F).copy(alpha = 0.4f),
+                        tint = if (canControl) Color.White else Color.White.copy(alpha = 0.4f),
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -231,22 +322,123 @@ fun PomodoroScreen(back: () -> Unit) {
                     val isSelected = total == mins * 60
 
                     Surface(
-                        onClick = { if (canControl) Timer.setMinutes(mins) },
+                        onClick = {
+                            if (canControl) {
+                                Timer.setMinutes(mins)
+                                sliderMinutes = mins.toFloat()
+                            }
+                        },
                         shape = RoundedCornerShape(14.dp),
-                        color = if (isSelected && canControl) Color.White else Color.White.copy(alpha = 0.18f),
+                        color = if (isSelected && canControl) {
+                            Color(0xFFE53935)
+                        } else {
+                            Color(0xFF140808).copy(alpha = 0.9f)
+                        },
                         modifier = Modifier.height(34.dp)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(horizontal = 10.dp)
+                            modifier = Modifier.padding(horizontal = 12.dp)
                         ) {
                             Text(
                                 text = "${mins}m",
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected && canControl) Color(0xFF4A2C2C) else Color.White.copy(alpha = if (canControl) 1f else 0.45f)
+                                fontWeight = FontWeight.Black,
+                                color = Color.White
                             )
                         }
+                    }
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF0D0505).copy(alpha = 0.9f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "CUSTOM TIMER",
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.sp
+                    )
+
+                    Text(
+                        text = "Max 3 hours (180 minutes).",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 11.sp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        TimerAdjustButton(
+                            text = "-5",
+                            enabled = canControl,
+                            modifier = Modifier.width(64.dp)
+                        ) {
+                            sliderMinutes = (sliderMinutes - 5f).coerceIn(1f, 180f)
+                        }
+
+                        Text(
+                            text = "${sliderMinutes.toInt()} min",
+                            color = Color.White,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+
+                        TimerAdjustButton(
+                            text = "+5",
+                            enabled = canControl,
+                            modifier = Modifier.width(64.dp)
+                        ) {
+                            sliderMinutes = (sliderMinutes + 5f).coerceIn(1f, 180f)
+                        }
+                    }
+
+                    Slider(
+                        value = sliderMinutes,
+                        onValueChange = { sliderMinutes = it.coerceIn(1f, 180f) },
+                        valueRange = 1f..180f,
+                        enabled = canControl,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFFE53935),
+                            activeTrackColor = Color(0xFFE53935),
+                            inactiveTrackColor = Color.White.copy(alpha = 0.12f)
+                        )
+                    )
+
+                    Button(
+                        onClick = { Timer.setMinutes(sliderMinutes.toInt()) },
+                        enabled = canControl && sliderMinutes.toInt() != total / 60,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE53935),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                    ) {
+                        Text(
+                            text = "SET CUSTOM TIMER",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 13.sp,
+                            letterSpacing = 1.sp
+                        )
                     }
                 }
             }
@@ -257,9 +449,11 @@ fun PomodoroScreen(back: () -> Unit) {
                 } else {
                     "Leaving the app voids the session. Finishing banks Fame."
                 },
-                color = Color.White.copy(alpha = 0.75f),
+                color = Color.White.copy(alpha = 0.7f),
                 fontSize = 11.sp
             )
+
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
         if (celebrate) {
@@ -273,7 +467,7 @@ fun PomodoroScreen(back: () -> Unit) {
                         spread = Spread.ROUND,
                         colors = listOf(
                             0xFFFFD700.toInt(),
-                            0xFFD9534F.toInt(),
+                            0xFFE53935.toInt(),
                             0xFF4CAF50.toInt(),
                             0xFF20B2AA.toInt()
                         ),
@@ -283,5 +477,108 @@ fun PomodoroScreen(back: () -> Unit) {
                 )
             )
         }
+    }
+}
+
+@Composable
+private fun StatusRow(label: String, value: String, valueColor: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            color = Color.White.copy(alpha = 0.65f),
+            fontSize = 11.sp
+        )
+
+        Text(
+            text = value,
+            color = valueColor,
+            fontWeight = FontWeight.Black,
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+private fun LeftToRightProgressBar(progress: Float) {
+    val transition = rememberInfiniteTransition(label = "progress_shine")
+    val shine by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "progress_shine_phase"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(12.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color.White.copy(alpha = 0.08f))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                .height(12.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            Color(0xFF7F0F1F),
+                            Color(0xFFE53935)
+                        )
+                    )
+                )
+        )
+
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val shineWidth = size.width * 0.18f
+            val x = shine * (size.width + shineWidth) - shineWidth
+
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.White.copy(alpha = 0.35f),
+                        Color.Transparent
+                    ),
+                    startX = x,
+                    endX = x + shineWidth
+                ),
+                topLeft = Offset(x, 0f),
+                size = Size(shineWidth, size.height)
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimerAdjustButton(
+    text: String,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF1A0505),
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(10.dp),
+        modifier = modifier.height(36.dp)
+    ) {
+        Text(
+            text = text,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black
+        )
     }
 }
