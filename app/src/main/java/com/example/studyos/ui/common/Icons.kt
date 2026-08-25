@@ -33,7 +33,7 @@ object SIcons {
     val Bag: ImageVector by lazy {
         icon {
             path(fill = SolidColor(Color.Black)) { moveTo(5f, 8f); lineTo(19f, 8f); lineTo(18f, 20f); lineTo(6f, 20f); close() }
-            path(stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round) { moveTo(9f, 8f); lineTo(9f, 6f); arcTo(androidx.compose.ui.geometry.Rect(9f, 3f, 15f, 9f), 180f, 180f, false); lineTo(15f, 8f) }
+            path(stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round) { moveTo(9f, 8f); lineTo(9f, 6f); curveTo(9f, 3f, 15f, 3f, 15f, 6f); lineTo(15f, 8f) }
         }
     }
     val Timer: ImageVector by lazy {
