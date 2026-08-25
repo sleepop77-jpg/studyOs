@@ -87,7 +87,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.18f)),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).shimmer(shimmer)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).customShimmer()
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(18.dp),
