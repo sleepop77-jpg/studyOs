@@ -81,7 +81,19 @@ class LockdownService : Service() {
         val name = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
         } catch (_: Exception) { pkg }
-        var shown = BustedOverlay.show(this, name, penalty)
+        var shown = BustedOverlay.show(this) {
+            com.example.studyos.ui.theme.StudyOSTheme(darkTheme = false) {
+                com.example.studyos.ui.lockdown.BustedScreen(onReturn = {
+                    BustedOverlay.hide()
+                    try {
+                        val i = Intent(this@LockdownService, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        }
+                        startActivity(i)
+                    } catch (_: Exception) { }
+                })
+            }
+        }
         if (!shown) {
             try {
                 val intent = Intent(this, BustedActivity::class.java).apply {
