@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                 }
                 LaunchedEffect(Unit) {
                     val serviceIntent = Intent(this@MainActivity, LockdownService::class.java)
-                    if (LockdownManager.isEnabled(this@MainActivity) && LockdownManager.hasUsageAccess(this@MainActivity)) {
+                    if (LockdownManager.hasUsageAccess(this@MainActivity)) {
                         androidx.core.content.ContextCompat.startForegroundService(this@MainActivity, serviceIntent)
                     } else {
                         stopService(serviceIntent)
