@@ -24,6 +24,7 @@ object Timer {
         scope.launch {
             while (true) {
                 delay(1000L)
+
                 if (running.value) {
                     if (seconds.value > 1) {
                         seconds.value -= 1
@@ -53,7 +54,7 @@ object Timer {
     fun setMinutes(m: Int) {
         if (!canControl()) return
 
-        val clamped = m.coerceIn(1, 480)
+        val clamped = m.coerceIn(1, 180)
         total.value = clamped * 60
         seconds.value = clamped * 60
         running.value = false
