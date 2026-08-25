@@ -24,121 +24,40 @@ fun homeBrush(): Brush {
 
     return when (theme) {
         "item_aurora_dream" -> Brush.verticalGradient(
-            listOf(
-                Color(0xFF010308),
-                Color(0xFF041018),
-                Color(0xFF010308)
-            )
+            listOf(Color(0xFF010308), Color(0xFF041018), Color(0xFF010308))
         )
-
         "item_math_matrix" -> Brush.verticalGradient(
-            listOf(
-                Color(0xFF000000),
-                Color(0xFF021002),
-                Color(0xFF000000)
-            )
+            listOf(Color(0xFF000000), Color(0xFF021002), Color(0xFF000000))
         )
-
         "item_spanish_fiesta" -> Brush.verticalGradient(
-            listOf(
-                Color(0xFF0B0303),
-                Color(0xFF1D0505),
-                Color(0xFF0B0303)
-            )
+            listOf(Color(0xFF0B0303), Color(0xFF1D0505), Color(0xFF0B0303))
         )
-
-        "theme_void_nexus" -> Brush.verticalGradient(
-            listOf(
-                Color(0xFF000000),
-                Color(0xFF12001F),
-                Color(0xFF2A0647),
-                Color(0xFF000000)
-            )
-        )
-
-        "theme_sakura_drift" -> Brush.verticalGradient(
-            listOf(
-                Color(0xFF090409),
-                Color(0xFF2D1B2E),
-                Color(0xFF4A2545),
-                Color(0xFF090409)
-            )
-        )
-
         else -> Brush.verticalGradient(
-            listOf(
-                Color(0xFF050505),
-                Color(0xFF0A0404),
-                Color(0xFF140505)
-            )
+            listOf(Color(0xFF050505), Color(0xFF0A0404), Color(0xFF140505))
         )
     }
 }
 
 @Composable
 fun RedPatchesBackground() {
-    Canvas(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(
-                    Color(0xFFC41C3B).copy(alpha = 0.20f),
-                    Color.Transparent
-                ),
+                colors = listOf(Color(0xFFC41C3B).copy(alpha = 0.15f), Color.Transparent),
                 center = Offset(size.width * 0.85f, size.height * 0.12f),
                 radius = size.width * 0.55f
             ),
             center = Offset(size.width * 0.85f, size.height * 0.12f),
             radius = size.width * 0.55f
         )
-
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(
-                    Color(0xFF8B0000).copy(alpha = 0.18f),
-                    Color.Transparent
-                ),
+                colors = listOf(Color(0xFF8B0000).copy(alpha = 0.12f), Color.Transparent),
                 center = Offset(size.width * 0.12f, size.height * 0.88f),
                 radius = size.width * 0.65f
             ),
             center = Offset(size.width * 0.12f, size.height * 0.88f),
             radius = size.width * 0.65f
-        )
-    }
-}
-
-@Composable
-fun LeftToRightSweep() {
-    val transition = rememberInfiniteTransition(label = "left_to_right_sweep")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1600, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "sweep_phase"
-    )
-
-    Canvas(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val barWidth = size.width * 0.22f
-        val x = phase * (size.width + barWidth) - barWidth
-
-        drawRect(
-            brush = Brush.horizontalGradient(
-                colors = listOf(
-                    Color.Transparent,
-                    Color(0xFFE53935).copy(alpha = 0.14f),
-                    Color.Transparent
-                ),
-                startX = x,
-                endX = x + barWidth
-            ),
-            topLeft = Offset(x, 0f),
-            size = Size(barWidth, size.height)
         )
     }
 }
