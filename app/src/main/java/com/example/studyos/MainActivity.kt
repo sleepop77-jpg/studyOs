@@ -18,6 +18,12 @@ import com.example.studyos.ui.launcher.LauncherScreen
 import com.example.studyos.ui.pomodoro.PomodoroScreen
 import com.example.studyos.ui.settings.SettingsScreen
 import com.example.studyos.ui.store.StoreScreen
+import com.example.studyos.ui.lockdown.LockdownScreen
+import com.example.studyos.core.LockdownManager
+import com.example.studyos.core.LockdownService
+import android.content.Intent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import com.example.studyos.ui.theme.PrimaryCoral
 
 class MainActivity : ComponentActivity() {
