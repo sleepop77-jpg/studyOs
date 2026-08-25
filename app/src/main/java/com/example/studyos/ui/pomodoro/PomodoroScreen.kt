@@ -136,6 +136,7 @@ fun PomodoroScreen(back: () -> Unit) {
                         fontSize = 12.sp,
                         letterSpacing = 1.sp
                     )
+
                     Text(
                         text = if (strict && running) {
                             "Locked. No pause/reset until finished."
@@ -228,6 +229,7 @@ fun PomodoroScreen(back: () -> Unit) {
             ) {
                 listOf(15, 25, 45, 60, 90, 180).forEach { mins ->
                     val isSelected = total == mins * 60
+
                     Surface(
                         onClick = { if (canControl) Timer.setMinutes(mins) },
                         shape = RoundedCornerShape(14.dp),
