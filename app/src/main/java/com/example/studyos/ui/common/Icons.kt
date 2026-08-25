@@ -39,7 +39,7 @@ object SIcons {
     val Timer: ImageVector by lazy {
         icon {
             path(fill = SolidColor(Color.Black)) { moveTo(10f, 2f); lineTo(14f, 2f); lineTo(14f, 4f); lineTo(10f, 4f); close() }
-            path(stroke = SolidColor(Color.Black), strokeLineWidth = 2.2f) { moveTo(19f, 13f); arcTo(androidx.compose.ui.geometry.Rect(5f, 6f, 19f, 20f), 0f, 180f, false); arcTo(androidx.compose.ui.geometry.Rect(5f, 6f, 19f, 20f), 180f, 180f, false) }
+            path(stroke = SolidColor(Color.Black), strokeLineWidth = 2.2f) { moveTo(19f, 13f); arcTo(5f, 6f, 19f, 20f, 0f, 180f, false); arcTo(5f, 6f, 19f, 20f, 180f, 180f, false) }
             path(stroke = SolidColor(Color.Black), strokeLineWidth = 2.2f, strokeLineCap = StrokeCap.Round) { moveTo(12f, 13f); lineTo(12f, 9f) }
         }
     }
