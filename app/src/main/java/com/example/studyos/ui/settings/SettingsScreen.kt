@@ -1,5 +1,11 @@
 package com.example.studyos.ui.settings
 
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,17 +39,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
 import com.example.studyos.core.Admin
-import com.example.studyos.core.StudyAdminReceiver
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
-import com.example.studyos.core.StudyMarket
-import com.example.studyos.ui.common.AnimatedBackground
-import com.example.studyos.ui.common.RedAura
+import com.example.studyos.core.StudyAdminReceiver
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.theme.AccentTeal
@@ -53,20 +52,20 @@ import com.example.studyos.ui.theme.WarningRed
 
 @Composable
 fun SettingsScreen(back: () -> Unit) {
-        val context = LocalContext.current
+    val context = LocalContext.current
     val isAdmin by Admin.enabled.collectAsState()
     var taps by remember { mutableIntStateOf(0) }
     var showCode by remember { mutableStateOf(false) }
+    
     val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
     val isAntiDeleteActive = dpm.isAdminActive(adminComponent)
+    
     var showAntiDeleteWarning by remember { mutableStateOf(false) }
     var showDeactivateWarning by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(homeBrush())) {
-        AnimatedBackground()
         RedPatchesBackground()
-        RedAura()
         
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
@@ -94,11 +93,7 @@ fun SettingsScreen(back: () -> Unit) {
                 }
             }
 
-                        val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-            val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
-            val isAntiDeleteActive = dpm.isAdminActive(adminComponent)
-            var showAntiDeleteWarning by remember { mutableStateOf(false) }
-                        Card(
+            Card(
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF2A0606).copy(alpha = 0.6f)),
                 modifier = Modifier.fillMaxWidth()
@@ -143,15 +138,6 @@ fun SettingsScreen(back: () -> Unit) {
                         }
 
                         Button(
-                            onClick = { StudyMarket.addAdminWalnuts(50.0) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
-                            modifier = Modifier.fillMaxWidth().height(44.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("+50 Golden Walnuts", color = Color(0xFF4A2C2C), fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
-                        }
-
-                        Button(
                             onClick = { Store.unlockAll() },
                             colors = ButtonDefaults.buttonColors(containerColor = AccentTeal),
                             modifier = Modifier.fillMaxWidth().height(44.dp),
@@ -176,7 +162,7 @@ fun SettingsScreen(back: () -> Unit) {
         }
     }
 
-        if (showAntiDeleteWarning) {
+    if (showAntiDeleteWarning) {
         AlertDialog(
             onDismissRequest = { showAntiDeleteWarning = false },
             title = { Text("WARNING: COMMIT OR QUIT?", fontWeight = FontWeight.Black, color = Color(0xFFD9534F)) },
@@ -184,12 +170,23 @@ fun SettingsScreen(back: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = {
-                                                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
-                            putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
-                            putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
-                        }
-                        context.startActivity(intent)
                         showAntiDeleteWarning = false
+                        try {
+                            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
+                                putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Fallback: Open general Device Admin settings page
+                            try {
+                                context.startActivity(Intent(Settings.ACTION_DEVICE_ADMIN_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                Toast.makeText(context, "Find StudyOS in the list and toggle it ON", Toast.LENGTH_LONG).show()
+                            } catch (_: Exception) {
+                                Toast.makeText(context, "Could not open Device Admin settings", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD9534F))
                 ) { Text("I Commit", fontWeight = FontWeight.Bold) }
