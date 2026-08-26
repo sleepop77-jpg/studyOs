@@ -1,7 +1,10 @@
 package com.example.studyos
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -37,6 +40,7 @@ import com.example.studyos.core.Store
 import com.example.studyos.core.StudyMarket
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.launcher.LauncherScreen
+import com.example.studyos.ui.lock.FocusLockActivity
 import com.example.studyos.ui.lockdown.LockdownScreen
 import com.example.studyos.ui.pomodoro.PomodoroScreen
 import com.example.studyos.ui.settings.SettingsScreen
@@ -44,6 +48,21 @@ import com.example.studyos.ui.stock.StocksScreen
 import com.example.studyos.ui.store.StoreScreen
 
 class MainActivity : ComponentActivity() {
+
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_SCREEN_OFF && Timer.running.value) {
+                try {
+                    val i = Intent(context, FocusLockActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context?.startActivity(i)
+                } catch (_: Exception) {
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
@@ -58,11 +77,21 @@ class MainActivity : ComponentActivity() {
             ContextCompat.startForegroundService(this, Intent(this, LockdownService::class.java))
         }
 
+        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFD9534F))) {
                 StudyOSNav()
             }
         }
+    }
+
+    override fun onDestroy() {
+        try {
+            unregisterReceiver(screenOffReceiver)
+        } catch (_: Exception) {
+        }
+        super.onDestroy()
     }
 }
 
@@ -102,6 +131,7 @@ private fun StudyOSNav() {
             "settings" -> SettingsScreen(back = { route = "launcher" })
             "lockdown" -> LockdownScreen(back = { route = "launcher" })
             "stocks" -> StocksScreen(back = { route = "launcher" })
+            else -> LauncherScreen(nav = { route = it })
         }
     }
 }
