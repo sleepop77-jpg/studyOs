@@ -102,7 +102,7 @@ class LockdownService : Service() {
             if (limitMin > 0) {
                 val usedSec = LockdownManager.usageToday(this)[currentFg] ?: 0L
                 if (usedSec >= limitMin * 60L && shouldLimitBust(currentFg)) {
-                    onLimitBusted(currentFg)
+                    onLimitBusted(currentFg, limitMin, usedSec)
                 }
             }
 
@@ -125,16 +125,16 @@ class LockdownService : Service() {
     }
 
     private fun onBusted(pkg: String) {
-        doBust(labelFor(pkg))
+        doBust(labelFor(pkg), pkg, 0, 0L, 0L)
     }
 
-    private fun onLimitBusted(pkg: String) {
+    private fun onLimitBusted(pkg: String, limitMin: Int, usedSec: Long) {
         LockdownManager.markLimitBusted(this, pkg)
         lastLimitBust[pkg] = System.currentTimeMillis()
-        doBust(labelFor(pkg) + " — daily limit reached")
+        doBust(labelFor(pkg), pkg, limitMin, usedSec, 0L)
     }
 
-    private fun doBust(displayName: String) {
+    private fun doBust(displayName: String, pkg: String, limitMin: Int, spentSec: Long, leftSec: Long) {
         escapes++
         val penalty = 3 + escapes * 2
 
@@ -142,17 +142,33 @@ class LockdownService : Service() {
         Economy.addFame(-10)
         StudyMarket.onUserBusted(displayName)
 
+        val spentMin = spentSec / 60
+        val leftMin = leftSec / 60
+
         var shown = BustedOverlay.show(this) {
-            BustedOverlayContent(displayName, penalty) {
-                BustedOverlay.hide()
-                try {
-                    val i = Intent(this@LockdownService, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            BustedOverlayContent(
+                appName = displayName,
+                penalty = penalty,
+                appPkg = pkg,
+                limitMinutes = limitMin,
+                spentMinutes = spentMin,
+                leftMinutes = leftMin,
+                onOpenApp = { BustedOverlay.hide() },
+                onTurnOff = {
+                    BustedOverlay.hide()
+                    LockdownManager.setEnabled(this@LockdownService, false)
+                },
+                onReturn = {
+                    BustedOverlay.hide()
+                    try {
+                        val i = Intent(this@LockdownService, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        }
+                        startActivity(i)
+                    } catch (_: Exception) {
                     }
-                    startActivity(i)
-                } catch (_: Exception) {
                 }
-            }
+            )
         }
 
         if (!shown) {
@@ -161,6 +177,10 @@ class LockdownService : Service() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     putExtra("busted_app_name", displayName)
                     putExtra("busted_penalty", penalty)
+                    putExtra("busted_pkg", pkg)
+                    putExtra("busted_limit", limitMin)
+                    putExtra("busted_spent", spentMin)
+                    putExtra("busted_left", leftMin)
                 }
                 startActivity(intent)
                 shown = true
