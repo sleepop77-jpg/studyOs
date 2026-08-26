@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import com.example.studyos.core.Admin
 import com.example.studyos.core.StudyAdminReceiver
@@ -52,10 +53,15 @@ import com.example.studyos.ui.theme.WarningRed
 
 @Composable
 fun SettingsScreen(back: () -> Unit) {
-    val context = LocalContext.current
+        val context = LocalContext.current
     val isAdmin by Admin.enabled.collectAsState()
     var taps by remember { mutableIntStateOf(0) }
     var showCode by remember { mutableStateOf(false) }
+    val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+    val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
+    val isAntiDeleteActive = dpm.isAdminActive(adminComponent)
+    var showAntiDeleteWarning by remember { mutableStateOf(false) }
+    var showDeactivateWarning by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(homeBrush())) {
         AnimatedBackground()
@@ -92,9 +98,7 @@ fun SettingsScreen(back: () -> Unit) {
             val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
             val isAntiDeleteActive = dpm.isAdminActive(adminComponent)
             var showAntiDeleteWarning by remember { mutableStateOf(false) }
-            var showDeactivateWarning by remember { mutableStateOf(false) }
-
-            Card(
+                        Card(
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF2A0606).copy(alpha = 0.6f)),
                 modifier = Modifier.fillMaxWidth()
