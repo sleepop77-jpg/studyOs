@@ -82,22 +82,33 @@ fun DoodleCanvas(
 ) {
     val strokes by DoodleStore.strokes.collectAsState()
     val current = remember { mutableStateOf<List<Offset>>(emptyList()) }
+    var brushPos by remember { mutableStateOf<Offset?>(null) }
 
     Canvas(
         modifier = modifier.then(
             if (enabled) {
                 Modifier.pointerInput(color, strokeWidth) {
                     detectDragGestures(
-                        onDragStart = { offset -> current.value = listOf(offset) },
-                        onDrag = { change, _ -> current.value = current.value + change.position },
+                        onDragStart = { offset -> 
+                            current.value = listOf(offset)
+                            brushPos = offset
+                        },
+                        onDrag = { change, _ -> 
+                            current.value = current.value + change.position
+                            brushPos = change.position
+                        },
                         onDragEnd = {
                             val pts = current.value
                             if (pts.size > 1) {
                                 DoodleStore.addStroke(DoodleStroke(color.toArgb().toLong(), strokeWidth, pts))
                             }
                             current.value = emptyList()
+                            brushPos = null
                         },
-                        onDragCancel = { current.value = emptyList() }
+                        onDragCancel = { 
+                            current.value = emptyList()
+                            brushPos = null
+                        }
                     )
                 }
             } else Modifier
@@ -124,5 +135,34 @@ fun DoodleCanvas(
         strokes.forEach { drawStroke(it) }
         val cur = current.value
         if (cur.size > 1) drawStroke(DoodleStroke(color.toArgb().toLong(), strokeWidth, cur))
+        
+        // Draw paintbrush cursor
+        brushPos?.let { pos ->
+            val brushSize = 24.dp.toPx()
+            val handleLength = 32.dp.toPx()
+            
+            // Brush tip (circle)
+            drawCircle(
+                color = color,
+                radius = brushSize / 2f,
+                center = pos
+            )
+            
+            // Brush handle (line going up-right)
+            drawLine(
+                color = Color(0xFF8B4513),
+                start = pos,
+                end = Offset(pos.x + handleLength * 0.7f, pos.y - handleLength * 0.7f),
+                strokeWidth = 6.dp.toPx(),
+                cap = StrokeCap.Round
+            )
+            
+            // Brush ferrule (metal part)
+            drawCircle(
+                color = Color(0xFFC0C0C0),
+                radius = 4.dp.toPx(),
+                center = pos
+            )
+        }
     }
 }

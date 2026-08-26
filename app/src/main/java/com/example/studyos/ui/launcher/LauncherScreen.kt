@@ -179,74 +179,98 @@ private fun MascotDoodleEditor(running: Boolean) {
         Color(0xFF00BCD4)
     )
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    val zoomScale by animateFloatAsState(
+        targetValue = if (editMode) 1.6f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "mascotZoom"
+    )
+    
+    val fadeAlpha by animateFloatAsState(
+        targetValue = if (editMode) 0f else 1f,
+        animationSpec = tween(300),
+        label = "fadeOthers"
+    )
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Box(modifier = Modifier.size(240.dp)) {
-            InteractiveMascot(
-                state = if (running) MascotState.STUDYING else MascotState.IDLE,
-                size = 240.dp,
-                showArc = true,
-                progressArc = 0.85f
-            )
-            DoodleCanvas(
-                enabled = editMode,
-                color = color,
-                strokeWidth = 4f,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-
-        Text(
-            if (running) "Deep Focus Active" else "Tap Mascot for Motivation",
-            color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 0.3.sp
-        )
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.alpha(fadeAlpha)
         ) {
-            Surface(
-                onClick = { editMode = !editMode },
-                shape = RoundedCornerShape(50.dp),
-                color = if (editMode) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.12f)
+            Box(
+                modifier = Modifier
+                    .size(240.dp)
+                    .scale(zoomScale)
             ) {
-                Text(
-                    if (editMode) "Done" else "Edit Art",
-                    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                InteractiveMascot(
+                    state = if (running) MascotState.STUDYING else MascotState.IDLE,
+                    size = 240.dp,
+                    showArc = true,
+                    progressArc = 0.85f
+                )
+                DoodleCanvas(
+                    enabled = editMode,
+                    color = color,
+                    strokeWidth = 4f,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
-            if (editMode) {
+
+            if (!editMode) {
+                Text(
+                    if (running) "Deep Focus Active" else "Tap Mascot for Motivation",
+                    color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 0.3.sp
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Surface(
-                    onClick = { DoodleStore.clear() },
+                    onClick = { editMode = !editMode },
                     shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFFD9534F)
+                    color = if (editMode) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        "Clear",
+                        if (editMode) "Done" else "Edit Art",
                         color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
+                if (editMode) {
+                    Surface(
+                        onClick = { DoodleStore.clear() },
+                        shape = RoundedCornerShape(50.dp),
+                        color = Color(0xFFD9534F)
+                    ) {
+                        Text(
+                            "Clear",
+                            color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                }
             }
-        }
 
-        if (editMode) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                palette.forEach { c ->
-                    val selected = color == c
-                    Box(
-                        modifier = Modifier
-                            .size(if (selected) 34.dp else 28.dp)
-                            .clip(CircleShape)
-                            .background(c)
-                            .clickable { color = c }
-                    )
+            if (editMode) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    palette.forEach { c ->
+                        val selected = color == c
+                        Box(
+                            modifier = Modifier
+                                .size(if (selected) 34.dp else 28.dp)
+                                .clip(CircleShape)
+                                .background(c)
+                                .clickable { color = c }
+                        )
+                    }
                 }
             }
         }
