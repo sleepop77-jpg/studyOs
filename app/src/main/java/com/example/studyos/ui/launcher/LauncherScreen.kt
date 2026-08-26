@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,6 +64,13 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val isAdmin by Admin.enabled.collectAsState()
     val bgBrush = homeBrush()
 
+    var editMode by remember { mutableStateOf(false) }
+    val uiAlpha by animateFloatAsState(
+        targetValue = if (editMode) 0f else 1f,
+        animationSpec = tween(300),
+        label = "uiFade"
+    )
+
     remember { DoodleStore.init(context); true }
 
     Box(modifier = Modifier.fillMaxSize().background(bgBrush)) {
@@ -79,7 +85,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().alpha(uiAlpha),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -99,6 +105,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
 
                     IconButton(
                         onClick = { nav("settings") },
+                        enabled = !editMode,
                         modifier = Modifier.size(38.dp).clip(CircleShape).background(Color.White)
                     ) {
                         Icon(SIcons.Gear, contentDescription = "Settings", tint = Color.Black, modifier = Modifier.size(18.dp))
@@ -109,10 +116,10 @@ fun LauncherScreen(nav: (String) -> Unit) {
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().alpha(uiAlpha)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().clickable { nav("pomodoro") }.padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().clickable(enabled = !editMode) { nav("pomodoro") }.padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -139,14 +146,19 @@ fun LauncherScreen(nav: (String) -> Unit) {
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                MascotDoodleEditor(running = running)
+                MascotDoodleEditor(
+                    running = running,
+                    editMode = editMode,
+                    onEditModeChange = { editMode = it }
+                )
             }
         }
 
-                Box(
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp)
+                .alpha(uiAlpha)
         ) {
             Surface(
                 shape = RoundedCornerShape(28.dp),
@@ -156,10 +168,10 @@ fun LauncherScreen(nav: (String) -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                     modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
                 ) {
-                    DockIcon(SIcons.Timer, "Timer") { nav("pomodoro") }
-                    DockIcon(SIcons.Lock, "Blocker") { nav("lockdown") }
-                    DockIcon(SIcons.Star, "Stocks") { nav("stocks") }
-                    DockIcon(SIcons.Bag, "Store") { nav("store") }
+                    DockIcon(SIcons.Timer, "Timer", enabled = !editMode) { nav("pomodoro") }
+                    DockIcon(SIcons.Lock, "Blocker", enabled = !editMode) { nav("lockdown") }
+                    DockIcon(SIcons.Star, "Stocks", enabled = !editMode) { nav("stocks") }
+                    DockIcon(SIcons.Bag, "Store", enabled = !editMode) { nav("store") }
                 }
             }
         }
@@ -167,8 +179,11 @@ fun LauncherScreen(nav: (String) -> Unit) {
 }
 
 @Composable
-private fun MascotDoodleEditor(running: Boolean) {
-    var editMode by remember { mutableStateOf(false) }
+private fun MascotDoodleEditor(
+    running: Boolean,
+    editMode: Boolean,
+    onEditModeChange: (Boolean) -> Unit
+) {
     var color by remember { mutableStateOf(Color(0xFFFFD700)) }
     val palette = listOf(
         Color.White,
@@ -182,97 +197,90 @@ private fun MascotDoodleEditor(running: Boolean) {
     )
 
     val zoomScale by animateFloatAsState(
-        targetValue = if (editMode) 1.6f else 1f,
+        targetValue = if (editMode) 1.5f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
         label = "mascotZoom"
     )
-    
-    val fadeAlpha by animateFloatAsState(
+
+    val captionAlpha by animateFloatAsState(
         targetValue = if (editMode) 0f else 1f,
         animationSpec = tween(300),
-        label = "fadeOthers"
+        label = "captionFade"
     )
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.alpha(fadeAlpha)
+        Box(
+            modifier = Modifier
+                .size(240.dp)
+                .scale(zoomScale)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(240.dp)
-                    .scale(zoomScale)
-            ) {
-                InteractiveMascot(
-                    state = if (running) MascotState.STUDYING else MascotState.IDLE,
-                    size = 240.dp,
-                    showArc = true,
-                    progressArc = 0.85f
-                )
-                DoodleCanvas(
-                    enabled = editMode,
-                    color = color,
-                    strokeWidth = 4f,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            InteractiveMascot(
+                state = if (running) MascotState.STUDYING else MascotState.IDLE,
+                size = 240.dp,
+                showArc = true,
+                progressArc = 0.85f
+            )
+            DoodleCanvas(
+                enabled = editMode,
+                color = color,
+                strokeWidth = 4f,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
-            if (!editMode) {
+        Text(
+            if (running) "Deep Focus Active" else "Tap Mascot for Motivation",
+            color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 0.3.sp,
+            modifier = Modifier.alpha(captionAlpha)
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                onClick = { onEditModeChange(!editMode) },
+                shape = RoundedCornerShape(50.dp),
+                color = if (editMode) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.12f)
+            ) {
                 Text(
-                    if (running) "Deep Focus Active" else "Tap Mascot for Motivation",
-                    color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 0.3.sp
+                    if (editMode) "Done" else "Edit Art",
+                    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (editMode) {
                 Surface(
-                    onClick = { editMode = !editMode },
+                    onClick = { DoodleStore.clear() },
                     shape = RoundedCornerShape(50.dp),
-                    color = if (editMode) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.12f)
+                    color = Color(0xFFD9534F)
                 ) {
                     Text(
-                        if (editMode) "Done" else "Edit Art",
+                        "Clear",
                         color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
-                if (editMode) {
-                    Surface(
-                        onClick = { DoodleStore.clear() },
-                        shape = RoundedCornerShape(50.dp),
-                        color = Color(0xFFD9534F)
-                    ) {
-                        Text(
-                            "Clear",
-                            color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
-                }
             }
+        }
 
-            if (editMode) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    palette.forEach { c ->
-                        val selected = color == c
-                        Box(
-                            modifier = Modifier
-                                .size(if (selected) 34.dp else 28.dp)
-                                .clip(CircleShape)
-                                .background(c)
-                                .clickable { color = c }
-                        )
-                    }
+        if (editMode) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                palette.forEach { c ->
+                    val selected = color == c
+                    Box(
+                        modifier = Modifier
+                            .size(if (selected) 34.dp else 28.dp)
+                            .clip(CircleShape)
+                            .background(c)
+                            .clickable { color = c }
+                    )
                 }
             }
         }
@@ -280,7 +288,7 @@ private fun MascotDoodleEditor(running: Boolean) {
 }
 
 @Composable
-private fun DockIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
+private fun DockIcon(icon: ImageVector, label: String, enabled: Boolean = true, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -289,7 +297,7 @@ private fun DockIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
         label = "dockScale"
     )
 
-        Column(
+    Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -299,7 +307,7 @@ private fun DockIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
                 .scale(scale)
                 .clip(RoundedCornerShape(18.dp))
                 .background(Color(0xFF2D2D2D))
-                .clickable(interactionSource = interactionSource, indication = null) { onClick() },
+                .clickable(interactionSource = interactionSource, indication = null, enabled = enabled) { onClick() },
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(32.dp))
