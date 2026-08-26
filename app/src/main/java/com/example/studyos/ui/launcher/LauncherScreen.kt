@@ -1,7 +1,12 @@
 package com.example.studyos.ui.launcher
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,13 +24,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -33,10 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
-import com.example.studyos.core.StudyMarket
 import com.example.studyos.core.Timer
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
+import com.example.studyos.ui.common.customShimmer
 import com.example.studyos.ui.common.homeBrush
 
 @Composable
@@ -46,25 +54,15 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val streak by Economy.streak.collectAsState()
     val running by Timer.running.collectAsState()
     val isAdmin by Admin.enabled.collectAsState()
-
-    val stocks by StudyMarket.stocks.collectAsState()
-    val holdings by StudyMarket.holdings.collectAsState()
-    val timerWalnuts by StudyMarket.timerWalnuts.collectAsState()
-    val saleWalnuts by StudyMarket.saleWalnuts.collectAsState()
-    val dividendWalnuts by StudyMarket.dividendWalnuts.collectAsState()
-
-    val marketWallet = timerWalnuts + saleWalnuts + dividendWalnuts
-    val marketPortfolio = holdings.values.sumOf { holding ->
-        (stocks[holding.symbol]?.price ?: 0.0) * holding.shares
-    }
-
     val bgBrush = homeBrush()
 
     Box(modifier = Modifier.fillMaxSize().background(bgBrush)) {
         RedPatchesBackground()
 
         Column(
-            modifier = Modifier.fillMaxSize().padding(top = 32.dp, bottom = 32.dp, start = 20.dp, end = 20.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 32.dp, bottom = 104.dp, start = 20.dp, end = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -88,16 +86,16 @@ fun LauncherScreen(nav: (String) -> Unit) {
 
                     IconButton(
                         onClick = { nav("settings") },
-                        modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f))
+                        modifier = Modifier.size(38.dp).clip(CircleShape).background(Color.White)
                     ) {
-                        Icon(SIcons.Gear, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(SIcons.Gear, contentDescription = "Settings", tint = Color.Black, modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -113,12 +111,10 @@ fun LauncherScreen(nav: (String) -> Unit) {
                             Text("FAME", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.2.sp)
                         }
                     }
-
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("${streak}d", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color(0xFFFFD180))
                         Text("STREAK", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.2.sp)
                     }
-
                     Column(horizontalAlignment = Alignment.End) {
                         Text("$shame", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color(0xFFFFD4D4))
                         Text("SHAME", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.2.sp)
@@ -128,8 +124,8 @@ fun LauncherScreen(nav: (String) -> Unit) {
 
             Card(
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.10f)),
-                modifier = Modifier.fillMaxWidth()
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
+                modifier = Modifier.fillMaxWidth().customShimmer()
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -142,12 +138,10 @@ fun LauncherScreen(nav: (String) -> Unit) {
                         showArc = true,
                         progressArc = 0.85f
                     )
-
                     Text(
                         if (running) "Deep Focus Active" else "Tap Mascot for Motivation",
                         color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp, letterSpacing = 0.3.sp
                     )
-
                     Box(
                         modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(Color(0xFFFFD700).copy(alpha = 0.15f)).padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
@@ -156,75 +150,51 @@ fun LauncherScreen(nav: (String) -> Unit) {
                 }
             }
 
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
-                modifier = Modifier.fillMaxWidth().clickable { nav("stocks") }
+            Spacer(Modifier.height(8.dp))
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 20.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(26.dp),
+                color = Color.White.copy(alpha = 0.07f)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
                 ) {
-                    Text(
-                        "STUDY STOCK MARKET",
-                        color = Color(0xFFFFD700),
-                        fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
-                        letterSpacing = 1.2.sp
-                    )
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Portfolio", color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp)
-                        Text("${marketPortfolio.toInt()} walnuts", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Wallet", color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp)
-                        Text("${marketWallet.toInt()} walnuts", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
-
-                    Text(
-                        "Trade bots, earn dividends, and pump your focus stock.",
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 10.sp
-                    )
+                    DockIcon(SIcons.Timer, "Timer") { nav("pomodoro") }
+                    DockIcon(SIcons.Lock, "Blocker") { nav("lockdown") }
+                    DockIcon(SIcons.Star, "Stocks") { nav("stocks") }
+                    DockIcon(SIcons.Bag, "Store") { nav("store") }
                 }
             }
-
-            Text("APPLICATIONS", color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 2.sp, modifier = Modifier.padding(top = 8.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                AppTile(SIcons.Timer, "Timer", Color(0xFFD9534F), Modifier.weight(1f)) { nav("pomodoro") }
-                AppTile(SIcons.Lock, "Blocker", Color(0xFF4A2C2C), Modifier.weight(1f)) { nav("lockdown") }
-                AppTile(SIcons.Star, "Stocks", Color(0xFFFFD700), Modifier.weight(1f)) { nav("stocks") }
-                AppTile(SIcons.Bag, "Store", Color(0xFF20B2AA), Modifier.weight(1f)) { nav("store") }
-            }
-
-            Spacer(Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-private fun AppTile(icon: ImageVector, label: String, color: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
-        modifier = modifier.clickable(onClick = onClick)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(color),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(24.dp))
-            }
+private fun DockIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.82f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "dockScale"
+    )
 
-            Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.3.sp)
-        }
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.White)
+            .clickable(interactionSource = interactionSource, indication = null) { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, contentDescription = label, tint = Color.Black, modifier = Modifier.size(22.dp))
     }
 }

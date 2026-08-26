@@ -10,6 +10,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
@@ -62,7 +69,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun StudyOSNav() {
     val context = LocalContext.current
-
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }
@@ -81,12 +87,21 @@ private fun StudyOSNav() {
         route = "launcher"
     }
 
-    when (route) {
-        "launcher" -> LauncherScreen(nav = { route = it })
-        "pomodoro" -> PomodoroScreen(back = { route = "launcher" })
-        "store" -> StoreScreen(back = { route = "launcher" })
-        "settings" -> SettingsScreen(back = { route = "launcher" })
-        "lockdown" -> LockdownScreen(back = { route = "launcher" })
-        "stocks" -> StocksScreen(back = { route = "launcher" })
+    AnimatedContent(
+        targetState = route,
+        transitionSpec = {
+            (scaleIn(animationSpec = tween(280), initialScale = 0.88f) + fadeIn(animationSpec = tween(280)))
+                .togetherWith(scaleOut(animationSpec = tween(280), targetScale = 1.08f) + fadeOut(animationSpec = tween(280)))
+        },
+        label = "appOpen"
+    ) { target ->
+        when (target) {
+            "launcher" -> LauncherScreen(nav = { route = it })
+            "pomodoro" -> PomodoroScreen(back = { route = "launcher" })
+            "store" -> StoreScreen(back = { route = "launcher" })
+            "settings" -> SettingsScreen(back = { route = "launcher" })
+            "lockdown" -> LockdownScreen(back = { route = "launcher" })
+            "stocks" -> StocksScreen(back = { route = "launcher" })
+        }
     }
 }

@@ -74,9 +74,9 @@ fun StoreScreen(back: () -> Unit) {
                 val isUnlocked = unlocked.contains(item.id)
                 val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
 
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)), modifier = Modifier.fillMaxWidth()) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)), modifier = Modifier.fillMaxWidth()) {
                     Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFE8706C).copy(alpha = 0.25f)), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
                             when {
                                 item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
                                 item.type == "Theme" -> AnimatedThemePreview(item.id, size = 56.dp)
@@ -93,9 +93,16 @@ fun StoreScreen(back: () -> Unit) {
                             !isUnlocked -> Button(
                                 onClick = { scope.launch { Store.buy(item.id) } },
                                 enabled = fame >= item.cost,
-                                colors = ButtonDefaults.buttonColors(containerColor = FameGold),
+                                colors = ButtonDefaults.buttonColors(containerColor = if (item.cost == 0) SuccessGreen else FameGold),
                                 shape = RoundedCornerShape(12.dp)
-                            ) { Text("${item.cost}", color = OnSurfaceDark, fontWeight = FontWeight.Black, fontSize = 13.sp) }
+                            ) {
+                                Text(
+                                    if (item.cost == 0) "FREE" else "${item.cost}",
+                                    color = OnSurfaceDark,
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 13.sp
+                                )
+                            }
                             else -> Button(
                                 onClick = { Store.equip(item.id) },
                                 colors = ButtonDefaults.buttonColors(containerColor = if (isEquipped) SuccessGreen else AccentTeal),
@@ -108,7 +115,6 @@ fun StoreScreen(back: () -> Unit) {
                     }
                 }
             }
-
             item { Spacer(Modifier.size(40.dp)) }
         }
     }
