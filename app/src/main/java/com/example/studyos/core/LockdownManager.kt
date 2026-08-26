@@ -109,18 +109,20 @@ object LockdownManager {
         }
     }
 
-    private fun readLimits(context: Context): Map<String, Int> =
+        private fun readLimits(context: Context): Map<String, Int> =
         prefs(context).getStringSet(KEY_LIMITS, null)?.mapNotNull {
             val parts = it.split("|")
-            val m = parts.getOrNull(1)?.toIntOrNull() ?: return@mapNotNull null
-            parts.getOrNull(0) to m
+            if (parts.size < 2) return@mapNotNull null
+            val m = parts[1].toIntOrNull() ?: return@mapNotNull null
+            parts[0] to m
         }?.toMap() ?: emptyMap()
 
     private fun readUsage(context: Context): Map<String, Long> =
         prefs(context).getStringSet(KEY_USAGE, null)?.mapNotNull {
             val parts = it.split("|")
-            val s = parts.getOrNull(1)?.toLongOrNull() ?: return@mapNotNull null
-            parts.getOrNull(0) to s
+            if (parts.size < 2) return@mapNotNull null
+            val s = parts[1].toLongOrNull() ?: return@mapNotNull null
+            parts[0] to s
         }?.toMap() ?: emptyMap()
 
     @Suppress("DEPRECATION")
