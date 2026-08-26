@@ -141,18 +141,18 @@ fun LauncherScreen(nav: (String) -> Unit) {
             }
         }
 
-        Box(
+                Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp)
         ) {
             Surface(
-                shape = RoundedCornerShape(26.dp),
-                color = Color.White.copy(alpha = 0.07f)
+                shape = RoundedCornerShape(28.dp),
+                color = Color(0xFF1A1A1A)
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
                 ) {
                     DockIcon(SIcons.Timer, "Timer") { nav("pomodoro") }
                     DockIcon(SIcons.Lock, "Blocker") { nav("lockdown") }
@@ -263,27 +263,27 @@ private fun DockIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
         label = "dockScale"
     )
 
-    Column(
+        Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(64.dp)
                 .scale(scale)
-                .clip(RoundedCornerShape(15.dp))
-                .background(Color.Black)
+                .clip(RoundedCornerShape(18.dp))
+                .background(Color(0xFF2D2D2D))
                 .clickable(interactionSource = interactionSource, indication = null) { onClick() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(22.dp))
+            Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(32.dp))
         }
         Text(
             label,
             color = Color.White,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium,
-            letterSpacing = 0.3.sp
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.4.sp
         )
     }
 }

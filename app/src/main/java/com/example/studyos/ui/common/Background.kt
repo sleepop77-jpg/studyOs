@@ -13,16 +13,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.example.studyos.core.Store
-import kotlin.math.sin
 import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun homeBrush(): Brush {
@@ -95,7 +93,7 @@ fun AnimatedBackground() {
             )
         }
 
-        // Floating Rings (Random Things)
+        // Floating Rings
         for (i in 0 until 12) {
             val baseX = ((i * 157) % 100) / 100f * w
             val baseY = ((i * 131) % 100) / 100f * h
@@ -129,6 +127,47 @@ fun AnimatedBackground() {
                 close()
             }
             drawPath(path = path, color = Color(0xFFE53935).copy(alpha = alpha))
+        }
+
+        // Shooting Stars (More and faster!)
+        for (i in 0 until 8) {
+            val startX = ((i * 89) % 100) / 100f * w
+            val startY = ((i * 37) % 30) / 100f * h
+            val shootPhase = (phase * 3f + i * 0.35f) % 1f
+            val shootX = startX + shootPhase * w * 0.6f
+            val shootY = startY + shootPhase * h * 0.4f
+            val alpha = if (shootPhase < 0.3f) shootPhase / 0.3f else if (shootPhase > 0.7f) (1f - shootPhase) / 0.3f else 1f
+            
+            // Star head
+            drawCircle(
+                color = Color(0xFFFFFF).copy(alpha = alpha * 0.9f),
+                radius = 2.5f.dp.toPx(),
+                center = Offset(shootX, shootY)
+            )
+            
+            // Tail
+            val tailLength = 40f.dp.toPx()
+            val tailEndX = shootX - tailLength * 0.7f
+            val tailEndY = shootY - tailLength * 0.5f
+            
+            drawLine(
+                color = Color(0xFFFFD700).copy(alpha = alpha * 0.6f),
+                start = Offset(shootX, shootY),
+                end = Offset(tailEndX, tailEndY),
+                strokeWidth = 1.5f.dp.toPx()
+            )
+            
+            // Fading tail
+            for (j in 1..3) {
+                val fadeAlpha = alpha * (1f - j / 4f) * 0.5f
+                val fadeX = tailEndX - j * 8f.dp.toPx()
+                val fadeY = tailEndY - j * 6f.dp.toPx()
+                drawCircle(
+                    color = Color(0xFFFFD700).copy(alpha = fadeAlpha),
+                    radius = (2f - j * 0.5f).dp.toPx(),
+                    center = Offset(fadeX, fadeY)
+                )
+            }
         }
     }
 }
