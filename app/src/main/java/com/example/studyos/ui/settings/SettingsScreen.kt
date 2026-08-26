@@ -172,12 +172,11 @@ fun SettingsScreen(back: () -> Unit) {
                     onClick = {
                         showAntiDeleteWarning = false
                         try {
-                            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
-                                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
-                                putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
+                                                    val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                            putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
+                            putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
+                        }
+                        context.startActivity(intent)
                                                 } catch (e: Exception) {
                             Toast.makeText(context, "Please go to Settings > Security > Device Admin Apps to enable StudyOS.", Toast.LENGTH_LONG).show()
                         }
