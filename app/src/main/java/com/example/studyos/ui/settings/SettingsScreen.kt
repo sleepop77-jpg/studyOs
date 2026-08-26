@@ -33,7 +33,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Intent
 import com.example.studyos.core.Admin
+import com.example.studyos.core.StudyAdminReceiver
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
 import com.example.studyos.core.StudyMarket
@@ -81,6 +85,38 @@ fun SettingsScreen(back: () -> Unit) {
                         "+2 Fame per minute in active sessions\n+1 Shame per minute idle (5 AM to 10 PM)\nDanger hours 4 to 6 PM: x3 Shame\nFame buys store cosmetics",
                         fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f), lineHeight = 20.sp, letterSpacing = 0.3.sp
                     )
+                }
+            }
+
+                        val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
+            val isAntiDeleteActive = dpm.isAdminActive(adminComponent)
+            var showAntiDeleteWarning by remember { mutableStateOf(false) }
+            var showDeactivateWarning by remember { mutableStateOf(false) }
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF2A0606).copy(alpha = 0.6f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("ANTI-DELETE (HARDCORE)", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color(0xFFFF5252), letterSpacing = 1.5.sp)
+                    Text(
+                        if (isAntiDeleteActive) "Active. The OS will block you from uninstalling StudyOS." 
+                        else "Prevents you from uninstalling the app. For those who need forced commitment.",
+                        fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f), lineHeight = 20.sp
+                    )
+                    Button(
+                        onClick = { 
+                            if (isAntiDeleteActive) showDeactivateWarning = true 
+                            else showAntiDeleteWarning = true 
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = if (isAntiDeleteActive) Color(0xFF4A2C2C) else Color(0xFFD9534F)),
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(if (isAntiDeleteActive) "Deactivate Anti-Delete" else "Activate Anti-Delete", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 
@@ -134,6 +170,46 @@ fun SettingsScreen(back: () -> Unit) {
 
             Text("Tap the title 7 times if you know what you are doing.", color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
         }
+    }
+
+        if (showAntiDeleteWarning) {
+        AlertDialog(
+            onDismissRequest = { showAntiDeleteWarning = false },
+            title = { Text("WARNING: COMMIT OR QUIT?", fontWeight = FontWeight.Black, color = Color(0xFFD9534F)) },
+            text = { Text("Activating Anti-Delete will prevent you from uninstalling StudyOS. If you try to delete the app, the system will block you and tell you not to quit. Are you ready to commit?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMINISTRATOR).apply {
+                            putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
+                            putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
+                        }
+                        context.startActivity(intent)
+                        showAntiDeleteWarning = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD9534F))
+                ) { Text("I Commit", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = { TextButton(onClick = { showAntiDeleteWarning = false }) { Text("I'm scared", color = Color.White.copy(alpha = 0.6f)) } }
+        )
+    }
+
+    if (showDeactivateWarning) {
+        AlertDialog(
+            onDismissRequest = { showDeactivateWarning = false },
+            title = { Text("GIVING UP?", fontWeight = FontWeight.Black, color = Color(0xFFFFD700)) },
+            text = { Text("Don't quit! Your mascot will cry, and your stocks will crash. Are you sure you want to remove your anti-delete protection?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        dpm.removeActiveAdmin(adminComponent)
+                        showDeactivateWarning = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A2C2C))
+                ) { Text("Yes, I quit", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = { TextButton(onClick = { showDeactivateWarning = false }) { Text("No, keep it!", color = Color(0xFF4CAF50)) } }
+        )
     }
 
     if (showCode) {
