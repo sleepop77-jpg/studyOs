@@ -184,7 +184,7 @@ fun SettingsScreen(back: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = {
-                        val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMINISTRATOR).apply {
+                                                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
                             putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
                         }
