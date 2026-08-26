@@ -42,9 +42,12 @@ class BustedActivity : ComponentActivity() {
                     limitMinutes = limit,
                     spentMinutes = spent,
                     leftMinutes = left,
-                    onOpenApp = { finish() },
-                    onTurnOff = {
-                        LockdownManager.setEnabled(this, false)
+                    onUnblock = {
+                        LockdownManager.unblockApp(this, pkg)
+                        finish()
+                    },
+                    onGrantTime = { mins ->
+                        LockdownManager.grantGrace(pkg, mins)
                         finish()
                     },
                     onReturn = {

@@ -24,6 +24,7 @@ object LockdownManager {
     val usageFlow = MutableStateFlow<Map<String, Long>>(emptyMap())
 
     private var loadedFor: Context? = null
+    private val graceUntil = mutableMapOf<String, Long>()
 
     private fun prefs(context: Context): SharedPreferences =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -55,7 +56,8 @@ object LockdownManager {
     }
 
     fun setAppLimit(context: Context, pkg: String, minutes: Int) {
-        val map = appLimits(context).toMutableMap()
+        ensureLoaded(context)
+        val map = limitsFlow.value.toMutableMap()
         if (minutes <= 0) map.remove(pkg) else map[pkg] = minutes
         prefs(context).edit()
             .putStringSet(KEY_LIMITS, map.map { "${it.key}|${it.value}" }.toSet())
@@ -96,6 +98,20 @@ object LockdownManager {
         prefs(context).edit().putStringSet(KEY_LIMIT_BUSTED, set).apply()
     }
 
+    fun grantGrace(pkg: String, minutes: Int) {
+        graceUntil[pkg] = System.currentTimeMillis() + minutes * 60_000L
+    }
+
+    fun isGraceActive(pkg: String): Boolean =
+        (graceUntil[pkg] ?: 0L) > System.currentTimeMillis()
+
+    fun unblockApp(context: Context, pkg: String) {
+        val blocked = blockedPackages(context).toMutableSet()
+        blocked.remove(pkg)
+        setBlockedPackages(context, blocked)
+        setAppLimit(context, pkg, 0)
+    }
+
     fun rollOverDay(context: Context) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val p = prefs(context)
@@ -109,7 +125,7 @@ object LockdownManager {
         }
     }
 
-        private fun readLimits(context: Context): Map<String, Int> =
+    private fun readLimits(context: Context): Map<String, Int> =
         prefs(context).getStringSet(KEY_LIMITS, null)?.mapNotNull {
             val parts = it.split("|")
             if (parts.size < 2) return@mapNotNull null

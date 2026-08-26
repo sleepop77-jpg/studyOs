@@ -98,6 +98,8 @@ class LockdownService : Service() {
             if (currentFg == null || currentFg == packageName) continue
             if (currentFg == "com.android.systemui" || currentFg == "com.android.launcher") continue
 
+            if (LockdownManager.isGraceActive(currentFg)) continue
+
             val limitMin = LockdownManager.appLimits(this)[currentFg] ?: 0
             if (limitMin > 0) {
                 val usedSec = LockdownManager.usageToday(this)[currentFg] ?: 0L
@@ -153,10 +155,13 @@ class LockdownService : Service() {
                 limitMinutes = limitMin,
                 spentMinutes = spentMin,
                 leftMinutes = leftMin,
-                onOpenApp = { BustedOverlay.hide() },
-                onTurnOff = {
+                onUnblock = {
                     BustedOverlay.hide()
-                    LockdownManager.setEnabled(this@LockdownService, false)
+                    LockdownManager.unblockApp(this@LockdownService, pkg)
+                },
+                onGrantTime = { mins ->
+                    LockdownManager.grantGrace(pkg, mins)
+                    BustedOverlay.hide()
                 },
                 onReturn = {
                     BustedOverlay.hide()
