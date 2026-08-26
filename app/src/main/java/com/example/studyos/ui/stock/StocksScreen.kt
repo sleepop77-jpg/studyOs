@@ -1,5 +1,6 @@
 package com.example.studyos.ui.stock
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +43,8 @@ import com.example.studyos.core.Economy
 import com.example.studyos.core.MarketEvent
 import com.example.studyos.core.MarketStock
 import com.example.studyos.core.StudyMarket
+import com.example.studyos.ui.common.AnimatedBackground
+import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import java.util.Locale
@@ -45,99 +54,97 @@ fun StocksScreen(back: () -> Unit) {
     val stocks by StudyMarket.stocks.collectAsState()
     val holdings by StudyMarket.holdings.collectAsState()
     val events by StudyMarket.events.collectAsState()
-
     val timerWalnuts by StudyMarket.timerWalnuts.collectAsState()
     val saleWalnuts by StudyMarket.saleWalnuts.collectAsState()
     val dividendWalnuts by StudyMarket.dividendWalnuts.collectAsState()
+    val priceHistory by StudyMarket.priceHistory.collectAsState()
     val fame by Economy.fame.collectAsState()
+    val haptic = LocalHapticFeedback.current
 
     val totalWallet = timerWalnuts + saleWalnuts + dividendWalnuts
     val portfolio = holdings.values.sumOf { holding ->
         (stocks[holding.symbol]?.price ?: 0.0) * holding.shares
     }
-
     val bgBrush = homeBrush()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgBrush)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp, start = 4.dp, end = 16.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxSize().background(bgBrush)) {
+        AnimatedBackground()
+        RedAura()
+        
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            IconButton(onClick = back) {
-                Icon(
-                    SIcons.Back,
-                    contentDescription = "Back",
-                    tint = Color.White
-                )
-            }
-
-            Text(
-                "STUDY STOCK MARKET",
-                color = Color.White,
-                fontWeight = FontWeight.Black,
-                fontSize = 16.sp,
-                letterSpacing = 1.sp
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                WalletCard(
-                    totalWallet = totalWallet,
-                    dividendWalnuts = dividendWalnuts,
-                    portfolio = portfolio,
-                    fame = fame
-                )
-            }
-
-            item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, start = 4.dp, end = 16.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = back) {
+                    Icon(
+                        SIcons.Back,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
                 Text(
-                    "STOCKS",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    letterSpacing = 1.2.sp
+                    "STUDY STOCK MARKET",
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp,
+                    letterSpacing = 1.sp
                 )
             }
-
-            items(
-                items = stocks.values.toList().sortedByDescending { it.price },
-                key = { it.symbol }
-            ) { stock ->
-                StockRow(
-                    stock = stock,
-                    owned = holdings[stock.symbol]?.shares ?: 0,
-                    wallet = totalWallet
-                )
-            }
-
-            item {
-                Text(
-                    "MARKET EVENTS",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    letterSpacing = 1.2.sp
-                )
-            }
-
-            items(events) { event ->
-                EventRow(event)
-            }
-
-            item {
-                Spacer(Modifier.height(24.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    WalletCard(
+                        totalWallet = totalWallet,
+                        dividendWalnuts = dividendWalnuts,
+                        portfolio = portfolio,
+                        fame = fame
+                    )
+                }
+                item {
+                    Text(
+                        "STOCKS",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.2.sp
+                    )
+                }
+                items(
+                    items = stocks.values.toList().sortedByDescending { it.price },
+                    key = { it.symbol }
+                ) { stock ->
+                    StockRow(
+                        stock = stock,
+                        owned = holdings[stock.symbol]?.shares ?: 0,
+                        wallet = totalWallet,
+                        history = priceHistory[stock.symbol] ?: emptyList(),
+                        onTrade = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+                    )
+                }
+                item {
+                    Text(
+                        "MARKET EVENTS",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.2.sp
+                    )
+                }
+                items(events) { event ->
+                    EventRow(event)
+                }
+                item {
+                    Spacer(Modifier.height(24.dp))
+                }
             }
         }
     }
@@ -151,7 +158,6 @@ private fun WalletCard(
     fame: Int
 ) {
     val fameGain = (dividendWalnuts / 10.0).toInt()
-
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -172,7 +178,6 @@ private fun WalletCard(
                 fontSize = 12.sp,
                 letterSpacing = 1.sp
             )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -189,7 +194,6 @@ private fun WalletCard(
                     fontSize = 16.sp
                 )
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -206,7 +210,6 @@ private fun WalletCard(
                     fontSize = 14.sp
                 )
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -223,7 +226,6 @@ private fun WalletCard(
                     fontSize = 14.sp
                 )
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -240,7 +242,6 @@ private fun WalletCard(
                     fontSize = 14.sp
                 )
             }
-
             Button(
                 onClick = { StudyMarket.convertDividendsToFame() },
                 enabled = fameGain > 0,
@@ -263,7 +264,6 @@ private fun WalletCard(
                     fontSize = 13.sp
                 )
             }
-
             Text(
                 "Only dividend walnuts can become Fame. Timer and sale walnuts are for investing.",
                 color = Color.White.copy(alpha = 0.65f),
@@ -277,11 +277,12 @@ private fun WalletCard(
 private fun StockRow(
     stock: MarketStock,
     owned: Int,
-    wallet: Double
+    wallet: Double,
+    history: List<Double> = emptyList(),
+    onTrade: () -> Unit = {}
 ) {
     val changeColor = if (stock.changePercent >= 0) Color(0xFF4CAF50) else Color(0xFFFF5252)
     val changeText = if (stock.changePercent >= 0) "+${stock.changePercent.f1()}%" else "${stock.changePercent.f1()}%"
-
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
@@ -313,7 +314,6 @@ private fun StockRow(
                         fontSize = 11.sp
                     )
                 }
-
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         "${stock.price.f1()} walnuts",
@@ -329,13 +329,18 @@ private fun StockRow(
                     )
                 }
             }
-
             Text(
                 stock.lastEvent,
                 color = Color.White.copy(alpha = 0.6f),
                 fontSize = 10.sp
             )
-
+            if (history.size >= 2) {
+                SparklineChart(
+                    prices = history,
+                    color = if (stock.changePercent >= 0) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                    modifier = Modifier.fillMaxWidth().height(24.dp)
+                )
+            }
             if (owned > 0) {
                 Text(
                     "Owned: $owned shares",
@@ -344,7 +349,6 @@ private fun StockRow(
                     fontSize = 11.sp
                 )
             }
-
             if (stock.symbol == StudyMarket.USER_SYMBOL) {
                 Text(
                     "Your personal stock. It rises when you study and crashes when you get busted.",
@@ -362,30 +366,31 @@ private fun StockRow(
                         modifier = Modifier.weight(1f)
                     ) {
                         StudyMarket.buy(stock.symbol, 1)
+                        onTrade()
                     }
-
                     TradeButton(
                         text = "Buy 10",
                         enabled = wallet >= stock.price * 10,
                         modifier = Modifier.weight(1f)
                     ) {
                         StudyMarket.buy(stock.symbol, 10)
+                        onTrade()
                     }
-
                     TradeButton(
                         text = "Sell 1",
                         enabled = owned >= 1,
                         modifier = Modifier.weight(1f)
                     ) {
                         StudyMarket.sell(stock.symbol, 1)
+                        onTrade()
                     }
-
                     TradeButton(
                         text = "Sell 10",
                         enabled = owned >= 10,
                         modifier = Modifier.weight(1f)
                     ) {
                         StudyMarket.sell(stock.symbol, 10)
+                        onTrade()
                     }
                 }
             }
@@ -440,13 +445,50 @@ private fun EventRow(event: MarketEvent) {
                     .clip(CircleShape)
                     .background(if (event.positive) Color(0xFF4CAF50) else Color(0xFFFF5252))
             )
-
             Text(
                 event.message,
                 color = Color.White,
                 fontSize = 12.sp
             )
         }
+    }
+}
+
+@Composable
+private fun SparklineChart(
+    prices: List<Double>,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    if (prices.size < 2) return
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+        val min = prices.min()
+        val max = prices.max()
+        val range = (max - min).coerceAtLeast(0.01)
+        val points = prices.mapIndexed { index, price ->
+            Offset(
+                x = index.toFloat() / (prices.size - 1) * w,
+                y = h - ((price - min) / range * h * 0.8f + h * 0.1f).toFloat()
+            )
+        }
+        val path = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            for (i in 1 until points.size) {
+                lineTo(points[i].x, points[i].y)
+            }
+        }
+        drawPath(
+            path = path,
+            color = color.copy(alpha = 0.7f),
+            style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round)
+        )
+        drawCircle(
+            color = color,
+            radius = 2.dp.toPx(),
+            center = points.last()
+        )
     }
 }
 

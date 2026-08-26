@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -27,6 +29,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -55,6 +58,8 @@ import com.example.studyos.core.BustedOverlay
 import com.example.studyos.core.LockdownManager
 import com.example.studyos.core.LockdownService
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.AnimatedBackground
+import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
@@ -77,6 +82,13 @@ private val KNOWN_DISTRACTIONS = listOf(
     "com.android.vending" to "Play Store"
 )
 
+private fun formatSecs(s: Long): String {
+    val m = s / 60
+    return if (m < 60) "${m}m" else "${m / 60}h ${m % 60}m"
+}
+
+private fun formatLimit(min: Int): String = if (min < 60) "${min}m" else "${min / 60}h"
+
 @Composable
 fun LockdownScreen(back: () -> Unit) {
     val context = LocalContext.current
@@ -87,6 +99,15 @@ fun LockdownScreen(back: () -> Unit) {
     var blocked by remember { mutableStateOf(LockdownManager.blockedPackages(context)) }
     var query by remember { mutableStateOf("") }
     val timerRunning by Timer.running.collectAsState()
+
+    val limits by LockdownManager.limitsFlow.collectAsState()
+    val usage by LockdownManager.usageFlow.collectAsState()
+
+    remember {
+        LockdownManager.appLimits(context)
+        LockdownManager.usageToday(context)
+        true
+    }
 
     fun syncService() {
         val i = Intent(context, LockdownService::class.java)
@@ -129,7 +150,9 @@ fun LockdownScreen(back: () -> Unit) {
     val filtered = apps.filter { query.isBlank() || it.label.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true) }
 
     Box(Modifier.fillMaxSize().background(homeBrush())) {
+        AnimatedBackground()
         RedPatchesBackground()
+        RedAura()
         
         Column(Modifier.fillMaxSize()) {
             Row(
@@ -162,7 +185,7 @@ fun LockdownScreen(back: () -> Unit) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text("Lockdown Mode", color = Color.White, fontWeight = FontWeight.Black, fontSize = 16.sp, letterSpacing = 0.5.sp)
                                 Text(
-                                    if (timerRunning) "Sealed while a focus session is running." else "Arms automatically when your timer runs. Opening a sealed app yanks you back and burns Shame.",
+                                    if (timerRunning) "Sealed while a focus session is running. Daily limits always apply when Lockdown is on." else "Arms automatically when your timer runs. Daily limits always apply when Lockdown is on.",
                                     color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.2.sp
                                 )
                             }
@@ -220,7 +243,7 @@ fun LockdownScreen(back: () -> Unit) {
                             if (!ok) {
                                 try {
                                     context.startActivity(
-                                        Intent(context, BustedActivity::class.java).apply {
+                                        Intent(context, com.example.studyos.ui.lockdown.BustedActivity::class.java).apply {
                                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                             putExtra("busted_app_name", "Test App")
                                         }
@@ -249,31 +272,74 @@ fun LockdownScreen(back: () -> Unit) {
                 }
 
                 items(filtered, key = { it.pkg }) { app ->
+                    val limitMin = limits[app.pkg] ?: 0
+                    val usedSec = usage[app.pkg] ?: 0L
+                    val overLimit = limitMin > 0 && usedSec >= limitMin * 60L
+
                     Card(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Image(bitmap = app.icon.toBitmap(48, 48).asImageBitmap(), contentDescription = null, modifier = Modifier.size(32.dp))
-                            Text(
-                                app.label, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, letterSpacing = 0.3.sp,
-                                modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
-                            )
-                            Checkbox(
-                                checked = blocked.contains(app.pkg),
-                                enabled = !timerRunning,
-                                onCheckedChange = { add ->
-                                    blocked = if (add) blocked + app.pkg else blocked - app.pkg
-                                    LockdownManager.setBlockedPackages(context, blocked)
-                                },
-                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFFD9534F))
-                            )
+                        Column(Modifier.padding(14.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(bitmap = app.icon.toBitmap(48, 48).asImageBitmap(), contentDescription = null, modifier = Modifier.size(32.dp))
+                                Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                                    Text(app.label, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, letterSpacing = 0.3.sp)
+                                    Text(
+                                        if (limitMin > 0) "Today: ${formatSecs(usedSec)} / ${formatLimit(limitMin)}" else "Today: ${formatSecs(usedSec)}",
+                                        color = if (overLimit) Color(0xFFFF8A80) else Color.White.copy(alpha = 0.5f),
+                                        fontSize = 11.sp
+                                    )
+                                }
+                                Checkbox(
+                                    checked = blocked.contains(app.pkg),
+                                    enabled = !timerRunning,
+                                    onCheckedChange = { add ->
+                                        blocked = if (add) blocked + app.pkg else blocked - app.pkg
+                                        LockdownManager.setBlockedPackages(context, blocked)
+                                    },
+                                    colors = CheckboxDefaults.colors(checkedColor = Color(0xFFD9534F))
+                                )
+                            }
+
+                            LimitPicker(current = limitMin) { min ->
+                                LockdownManager.setAppLimit(context, app.pkg, min)
+                            }
                         }
                     }
                 }
 
                 item { Spacer(Modifier.height(32.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LimitPicker(current: Int, onSelect: (Int) -> Unit) {
+    val presets = listOf(0 to "Off", 5 to "5m", 15 to "15m", 30 to "30m", 60 to "1h", 120 to "2h", 240 to "4h", 480 to "8h")
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 10.dp).horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        presets.forEach { (min, label) ->
+            val selected = current == min
+            Surface(
+                onClick = { onSelect(min) },
+                shape = RoundedCornerShape(10.dp),
+                color = if (selected) Color(0xFFD9534F) else Color.White.copy(alpha = 0.08f),
+                modifier = Modifier.height(28.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
+                    Text(
+                        label,
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
+                        letterSpacing = 0.5.sp
+                    )
+                }
             }
         }
     }

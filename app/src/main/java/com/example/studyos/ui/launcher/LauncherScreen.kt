@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.AnimatedBackground
+import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.customShimmer
@@ -57,12 +59,14 @@ fun LauncherScreen(nav: (String) -> Unit) {
     val bgBrush = homeBrush()
 
     Box(modifier = Modifier.fillMaxSize().background(bgBrush)) {
+        AnimatedBackground()
         RedPatchesBackground()
+        RedAura()
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 32.dp, bottom = 104.dp, start = 20.dp, end = 20.dp),
+                .padding(top = 32.dp, bottom = 120.dp, start = 20.dp, end = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -156,15 +160,15 @@ fun LauncherScreen(nav: (String) -> Unit) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp)
+                .padding(bottom = 24.dp)
         ) {
             Surface(
-                shape = RoundedCornerShape(26.dp),
+                shape = RoundedCornerShape(32.dp),
                 color = Color.White.copy(alpha = 0.07f)
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp)
                 ) {
                     DockIcon(SIcons.Timer, "Timer") { nav("pomodoro") }
                     DockIcon(SIcons.Lock, "Blocker") { nav("lockdown") }
@@ -186,15 +190,27 @@ private fun DockIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
         label = "dockScale"
     )
 
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .scale(scale)
-            .clip(RoundedCornerShape(15.dp))
-            .background(Color.White)
-            .clickable(interactionSource = interactionSource, indication = null) { onClick() },
-        contentAlignment = Alignment.Center
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Icon(icon, contentDescription = label, tint = Color.Black, modifier = Modifier.size(22.dp))
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .scale(scale)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.Black)
+                .clickable(interactionSource = interactionSource, indication = null) { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(26.dp))
+        }
+        Text(
+            label,
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            letterSpacing = 0.3.sp
+        )
     }
 }

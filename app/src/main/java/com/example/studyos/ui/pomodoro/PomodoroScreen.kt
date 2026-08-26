@@ -55,6 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Timer
+import com.example.studyos.ui.common.AnimatedBackground
+import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
@@ -99,7 +101,9 @@ fun PomodoroScreen(back: () -> Unit) {
     val bgBrush = homeBrush()
 
     Box(Modifier.fillMaxSize().background(bgBrush)) {
+        AnimatedBackground()
         RedPatchesBackground()
+        RedAura()
 
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 32.dp),

@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
+import com.example.studyos.ui.common.AnimatedBackground
+import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.AnimatedMascotPreview
@@ -52,70 +54,73 @@ fun StoreScreen(back: () -> Unit) {
     val eqTheme by Store.equippedTheme.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(homeBrush())
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 24.dp, start = 4.dp, end = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = back) { Icon(SIcons.Back, contentDescription = "Back", tint = Color.White) }
-            Text("Fame Store", color = Color.White, fontWeight = FontWeight.Black, fontSize = 18.sp, modifier = Modifier.weight(1f))
-            Box(modifier = Modifier.clip(RoundedCornerShape(14.dp)).background(FameGold).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(SIcons.Star, contentDescription = null, tint = OnSurfaceDark, modifier = Modifier.size(14.dp))
-                    Text("$fame", color = OnSurfaceDark, fontWeight = FontWeight.Black, fontSize = 13.sp)
+    Box(modifier = Modifier.fillMaxSize().background(homeBrush())) {
+        AnimatedBackground()
+        RedAura()
+        
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 24.dp, start = 4.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = back) { Icon(SIcons.Back, contentDescription = "Back", tint = Color.White) }
+                Text("Fame Store", color = Color.White, fontWeight = FontWeight.Black, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                Box(modifier = Modifier.clip(RoundedCornerShape(14.dp)).background(FameGold).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(SIcons.Star, contentDescription = null, tint = OnSurfaceDark, modifier = Modifier.size(14.dp))
+                        Text("$fame", color = OnSurfaceDark, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                    }
                 }
             }
-        }
 
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(Store.ITEMS, key = { it.id }) { item ->
-                val isUnlocked = unlocked.contains(item.id)
-                val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(Store.ITEMS, key = { it.id }) { item ->
+                    val isUnlocked = unlocked.contains(item.id)
+                    val isEquipped = (item.type == "Mascot" && eqMascot == item.id) || (item.type == "Theme" && eqTheme == item.id)
 
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)), modifier = Modifier.fillMaxWidth()) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)), modifier = Modifier.fillMaxWidth()) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                                when {
+                                    item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
+                                    item.type == "Theme" -> AnimatedThemePreview(item.id, size = 56.dp)
+                                    else -> Icon(SIcons.Bag, contentDescription = null, tint = Color(0xFFF5A623), modifier = Modifier.size(24.dp))
+                                }
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+                                Text(item.description, fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
+                            }
+
                             when {
-                                item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
-                                item.type == "Theme" -> AnimatedThemePreview(item.id, size = 56.dp)
-                                else -> Icon(SIcons.Bag, contentDescription = null, tint = Color(0xFFF5A623), modifier = Modifier.size(24.dp))
-                            }
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(item.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
-                            Text(item.description, fontSize = 11.sp, color = Color.White.copy(alpha = 0.6f))
-                        }
-
-                        when {
-                            !isUnlocked -> Button(
-                                onClick = { scope.launch { Store.buy(item.id) } },
-                                enabled = fame >= item.cost,
-                                colors = ButtonDefaults.buttonColors(containerColor = if (item.cost == 0) SuccessGreen else FameGold),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(
-                                    if (item.cost == 0) "FREE" else "${item.cost}",
-                                    color = OnSurfaceDark,
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 13.sp
-                                )
-                            }
-                            else -> Button(
-                                onClick = { Store.equip(item.id) },
-                                colors = ButtonDefaults.buttonColors(containerColor = if (isEquipped) SuccessGreen else AccentTeal),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                if (isEquipped) Icon(SIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
-                                Text(if (isEquipped) "On" else "Equip", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                !isUnlocked -> Button(
+                                    onClick = { scope.launch { Store.buy(item.id) } },
+                                    enabled = fame >= item.cost,
+                                    colors = ButtonDefaults.buttonColors(containerColor = if (item.cost == 0) SuccessGreen else FameGold),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(
+                                        if (item.cost == 0) "FREE" else "${item.cost}",
+                                        color = OnSurfaceDark,
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                                else -> Button(
+                                    onClick = { Store.equip(item.id) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = if (isEquipped) SuccessGreen else AccentTeal),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    if (isEquipped) Icon(SIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                    Text(if (isEquipped) "On" else "Equip", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
                             }
                         }
                     }
                 }
+                item { Spacer(Modifier.size(40.dp)) }
             }
-            item { Spacer(Modifier.size(40.dp)) }
         }
     }
 }

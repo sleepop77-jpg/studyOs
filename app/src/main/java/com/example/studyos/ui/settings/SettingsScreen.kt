@@ -37,6 +37,8 @@ import com.example.studyos.core.Admin
 import com.example.studyos.core.Economy
 import com.example.studyos.core.Store
 import com.example.studyos.core.StudyMarket
+import com.example.studyos.ui.common.AnimatedBackground
+import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.theme.AccentTeal
@@ -52,8 +54,10 @@ fun SettingsScreen(back: () -> Unit) {
     var showCode by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(homeBrush())) {
+        AnimatedBackground()
         RedPatchesBackground()
-
+        RedAura()
+        
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
