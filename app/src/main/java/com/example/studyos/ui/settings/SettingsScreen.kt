@@ -178,14 +178,8 @@ fun SettingsScreen(back: () -> Unit) {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
                             context.startActivity(intent)
-                        } catch (e: Exception) {
-                            // Fallback: Open general Device Admin settings page
-                            try {
-                                context.startActivity(Intent(Settings.ACTION_DEVICE_ADMIN_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                Toast.makeText(context, "Find StudyOS in the list and toggle it ON", Toast.LENGTH_LONG).show()
-                            } catch (_: Exception) {
-                                Toast.makeText(context, "Could not open Device Admin settings", Toast.LENGTH_SHORT).show()
-                            }
+                                                } catch (e: Exception) {
+                            Toast.makeText(context, "Please go to Settings > Security > Device Admin Apps to enable StudyOS.", Toast.LENGTH_LONG).show()
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD9534F))
