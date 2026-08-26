@@ -28,6 +28,10 @@ class LockdownService : Service() {
     private var escapes = 0
     private var polling = false
 
+    private var fgPkg: String? = null
+    private var fgSince = 0L
+    private val lastLimitBust = mutableMapOf<String, Long>()
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -38,13 +42,12 @@ class LockdownService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(1101, buildNotification())
-
         if (!polling) {
             polling = true
             lastCheck = System.currentTimeMillis()
+            fgSince = lastCheck
             scope.launch { poll() }
         }
-
         return START_STICKY
     }
 
@@ -52,55 +55,95 @@ class LockdownService : Service() {
         while (true) {
             delay(1000L)
 
-            val armed = LockdownManager.isEnabled(this) && Timer.running.value
-
-            if (!armed) {
+            val lockdownOn = LockdownManager.isEnabled(this)
+            if (!lockdownOn) {
                 BustedOverlay.hide()
+                fgPkg = null
                 continue
             }
 
+            LockdownManager.rollOverDay(this)
+            val sealed = Timer.running.value
+
             val now = System.currentTimeMillis()
-            val events = usage?.queryEvents(lastCheck, now) ?: continue
+            val events = usage?.queryEvents(lastCheck, now)
             lastCheck = now
+            if (events == null) continue
 
-            var foreground: String? = null
             val event = UsageEvents.Event()
-
             while (events.hasNextEvent()) {
                 events.getNextEvent(event)
-                if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND) {
-                    foreground = event.packageName
+                when (event.eventType) {
+                    UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                        fgPkg = event.packageName
+                        fgSince = event.timeStamp
+                    }
+                    UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                        if (event.packageName == fgPkg) {
+                            val usedSec = (event.timeStamp - fgSince) / 1000L
+                            if (usedSec > 0) LockdownManager.addUsage(this, event.packageName, usedSec)
+                            fgPkg = null
+                        }
+                    }
                 }
             }
 
-            val pkg = foreground ?: continue
+            val currentFg = fgPkg
+            if (currentFg != null) {
+                val usedSec = (now - fgSince) / 1000L
+                if (usedSec > 0) LockdownManager.addUsage(this, currentFg, usedSec)
+                fgSince = now
+            }
 
-            if (pkg == packageName) continue
-            if (pkg == "com.android.systemui" || pkg == "com.android.launcher") continue
+            if (currentFg == null || currentFg == packageName) continue
+            if (currentFg == "com.android.systemui" || currentFg == "com.android.launcher") continue
 
-            if (LockdownManager.blockedPackages(this).contains(pkg)) {
-                onBusted(pkg)
+            val limitMin = LockdownManager.appLimits(this)[currentFg] ?: 0
+            if (limitMin > 0) {
+                val usedSec = LockdownManager.usageToday(this)[currentFg] ?: 0L
+                if (usedSec >= limitMin * 60L && shouldLimitBust(currentFg)) {
+                    onLimitBusted(currentFg)
+                }
+            }
+
+            if (sealed && LockdownManager.blockedPackages(this).contains(currentFg)) {
+                onBusted(currentFg)
             }
         }
     }
 
+    private fun shouldLimitBust(pkg: String): Boolean {
+        if (!LockdownManager.isLimitBusted(this, pkg)) return true
+        val last = lastLimitBust[pkg] ?: 0L
+        return System.currentTimeMillis() - last >= 30_000L
+    }
+
+    private fun labelFor(pkg: String): String = try {
+        packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+    } catch (_: Exception) {
+        pkg
+    }
+
     private fun onBusted(pkg: String) {
+        doBust(labelFor(pkg))
+    }
+
+    private fun onLimitBusted(pkg: String) {
+        LockdownManager.markLimitBusted(this, pkg)
+        lastLimitBust[pkg] = System.currentTimeMillis()
+        doBust(labelFor(pkg) + " — daily limit reached")
+    }
+
+    private fun doBust(displayName: String) {
         escapes++
         val penalty = 3 + escapes * 2
 
         Economy.addShame(penalty)
         Economy.addFame(-10)
-
-        val name = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
-        } catch (_: Exception) {
-            pkg
-        }
-
-        StudyMarket.onUserBusted(name)
+        StudyMarket.onUserBusted(displayName)
 
         var shown = BustedOverlay.show(this) {
-            BustedOverlayContent(name, penalty) {
+            BustedOverlayContent(displayName, penalty) {
                 BustedOverlay.hide()
                 try {
                     val i = Intent(this@LockdownService, MainActivity::class.java).apply {
@@ -116,7 +159,7 @@ class LockdownService : Service() {
             try {
                 val intent = Intent(this, BustedActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    putExtra("busted_app_name", name)
+                    putExtra("busted_app_name", displayName)
                     putExtra("busted_penalty", penalty)
                 }
                 startActivity(intent)
@@ -128,11 +171,10 @@ class LockdownService : Service() {
         if (!shown) {
             val n = NotificationCompat.Builder(this, "lockdown_channel")
                 .setSmallIcon(android.R.drawable.ic_lock_lock)
-                .setContentTitle("BUSTED: $name")
+                .setContentTitle("BUSTED: $displayName")
                 .setContentText("+$penalty Shame and -10 Fame. Return to your session.")
                 .setOngoing(false)
                 .build()
-
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(1102, n)
         }
     }
