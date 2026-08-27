@@ -61,21 +61,21 @@ fun SplashScreen(onDone: () -> Unit) {
 
     val phase by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
-        animationSpec = tween(3000, easing = LinearEasing),
+        animationSpec = tween(4500, easing = LinearEasing),
         label = "splashPhase",
         finishedListener = { leaving = true }
     )
 
     val fadeOut by animateFloatAsState(
         targetValue = if (leaving) 0f else 1f,
-        animationSpec = tween(450, easing = FastOutSlowInEasing),
+        animationSpec = tween(600, easing = FastOutSlowInEasing),
         label = "splashFade"
     )
 
     LaunchedEffect(Unit) { started = true }
     LaunchedEffect(leaving) {
         if (leaving) {
-            delay(450)
+            delay(600)
             onDone()
         }
     }
@@ -88,13 +88,13 @@ fun SplashScreen(onDone: () -> Unit) {
 
         LottieAnimation(
             composition = composition,
-            iterations = 1,
+            progress = { phase },
             modifier = Modifier.fillMaxSize()
         )
 
-        val enter = easeOutBack(seg(phase, 0.06f, 0.30f))
-        val absorbT = seg(phase, 0.74f, 0.86f)
-        val pulse = 1f + sin(absorbT * PI.toFloat()) * 0.12f
+        val enter = easeOutBack(seg(phase, 0.05f, 0.25f))
+        val absorbT = seg(phase, 0.72f, 0.82f)
+        val pulse = 1f + sin(absorbT * PI.toFloat()) * 0.15f
         val mScale = (enter * pulse).coerceAtLeast(0.001f)
         val tilt = -34f + sin(phase * PI.toFloat() * 4f) * 5f * (1f - phase)
         val arc = easeOut(seg(phase, 0.15f, 0.9f)) * 0.85f
@@ -122,8 +122,8 @@ fun SplashScreen(onDone: () -> Unit) {
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             repeat(8) { i ->
-                val launch = easeOut(seg(phase, 0.30f + i * 0.012f, 0.52f + i * 0.012f))
-                val ret = easeIn(seg(phase, 0.66f + i * 0.008f, 0.86f + i * 0.008f))
+                val launch = easeOut(seg(phase, 0.25f + i * 0.012f, 0.45f + i * 0.012f))
+                val ret = easeIn(seg(phase, 0.55f + i * 0.008f, 0.75f + i * 0.008f))
                 val radius = 200f * launch * (1f - ret)
                 val ang = (i / 8f) * 2f * PI.toFloat() + 0.4f
                 val dx = cos(ang) * radius
@@ -131,7 +131,7 @@ fun SplashScreen(onDone: () -> Unit) {
                 val spin = phase * 1440f + i * 45f
                 val flip = abs(cos(spin * PI.toFloat() / 180f)) * 0.85f + 0.15f
                 val sizeMul = 0.8f + (i % 4) * 0.2f
-                val alpha = seg(phase, 0.30f + i * 0.012f, 0.40f + i * 0.012f) * (1f - seg(phase, 0.80f, 0.90f))
+                val alpha = seg(phase, 0.25f + i * 0.012f, 0.35f + i * 0.012f) * (1f - seg(phase, 0.70f, 0.75f))
                 val col = when (i % 5) {
                     0, 1, 3 -> Color(0xFFFFD700)
                     2 -> Color(0xFF4CAF50)
@@ -156,7 +156,7 @@ fun SplashScreen(onDone: () -> Unit) {
             }
         }
 
-        val wt = easeOut(seg(phase, 0.78f, 0.95f))
+        val wt = easeOut(seg(phase, 0.82f, 0.94f))
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
