@@ -33,17 +33,19 @@ object AnimatedSkins {
     const val NEON_RING = "item_free_neon_ring"
     const val ORBIT = "item_free_orbit"
 
-    val MASCOT_SET = setOf(HALO, NINJA, PARTY, NEON_RING, ORBIT)
+    const val COSMIC = "item_cosmic_scholar"
+val MASCOT_SET = setOf(HALO, NINJA, PARTY, NEON_RING, ORBIT, COSMIC)
 }
 
-fun DrawScope.drawExtraSkins(skin: String?, cx: Float, cy: Float, w: Float, h: Float, headCenter: Offset, phase: Float) {
-    when (skin) {
-        AnimatedSkins.HALO -> drawScholarHalo(headCenter, w, h, phase)
-        AnimatedSkins.NINJA -> drawNinjaHeadband(headCenter, w, h, phase)
-        AnimatedSkins.PARTY -> drawPartyMode(cx, cy, w, h, headCenter, phase)
-        AnimatedSkins.NEON_RING -> drawNeonRing(headCenter, w, h, phase)
-        AnimatedSkins.ORBIT -> drawOrbit(headCenter, w, h, phase)
-    }
+fun DrawScope.drawExtraSkins(skin: String?, cx: Float, cy: Float, w: Float, h: Float, headCenter: Offset, phase: Float, state: MascotState = MascotState.IDLE) {
+when (skin) {
+AnimatedSkins.HALO -> drawScholarHalo(headCenter, w, h, phase)
+AnimatedSkins.NINJA -> drawNinjaHeadband(headCenter, w, h, phase)
+AnimatedSkins.PARTY -> drawPartyMode(cx, cy, w, h, headCenter, phase)
+AnimatedSkins.NEON_RING -> drawNeonRing(headCenter, w, h, phase)
+AnimatedSkins.ORBIT -> drawOrbit(headCenter, w, h, phase)
+AnimatedSkins.COSMIC -> drawCosmicScholar(cx, cy, w, h, headCenter, phase, state)
+}
 }
 
 private fun DrawScope.drawNeonRing(headCenter: Offset, w: Float, h: Float, phase: Float) {
@@ -66,16 +68,168 @@ private fun DrawScope.drawNeonRing(headCenter: Offset, w: Float, h: Float, phase
 }
 
 private fun DrawScope.drawOrbit(headCenter: Offset, w: Float, h: Float, phase: Float) {
-    val t = phase * 2f * Math.PI.toFloat()
-    for (i in 0 until 3) {
-        val ang = t * 1.5f + i * (2f * Math.PI.toFloat() / 3f)
-        val rx = w * 0.32f
-        val ry = w * 0.12f
-        val x = headCenter.x + cos(ang) * rx
-        val y = headCenter.y + sin(ang) * ry
-        drawCircle(Color(0xFFFFD700).copy(alpha = 0.9f), 3f.dp.toPx(), Offset(x, y))
-        drawCircle(Color(0xFFFFD700).copy(alpha = 0.3f), 5f.dp.toPx(), Offset(x, y))
-    }
+val t = phase * 2f * Math.PI.toFloat()
+for (i in 0 until 3) {
+val ang = t * 1.5f + i * (2f * Math.PI.toFloat() / 3f)
+val rx = w * 0.32f
+val ry = w * 0.12f
+val x = headCenter.x + cos(ang) * rx
+val y = headCenter.y + sin(ang) * ry
+drawCircle(Color(0xFFFFD700).copy(alpha = 0.9f), 3f.dp.toPx(), Offset(x, y))
+drawCircle(Color(0xFFFFD700).copy(alpha = 0.3f), 5f.dp.toPx(), Offset(x, y))
+}
+}
+
+private fun DrawScope.drawCosmicScholar(
+cx: Float,
+cy: Float,
+w: Float,
+h: Float,
+headCenter: Offset,
+phase: Float,
+state: MascotState
+) {
+val t = phase * 2f * Math.PI.toFloat()
+val isStudying = state == MascotState.STUDYING || state == MascotState.WORKING_HARD || state == MascotState.BURNING
+val intensity = if (isStudying) 1.4f else 1.0f
+val pulse = 0.85f + 0.15f * sin(t * 2f)
+
+for (i in 0 until 3) {
+val nebulaPhase = t * (0.3f + i * 0.2f)
+val nebulaRx = w * (0.45f + i * 0.05f) * pulse
+val nebulaRy = nebulaRx * 0.6f
+val nebulaColor = when (i) {
+0 -> Color(0xFF6A1B9A).copy(alpha = 0.15f * intensity)
+1 -> Color(0xFF1565C0).copy(alpha = 0.12f * intensity)
+else -> Color(0xFF00838F).copy(alpha = 0.10f * intensity)
+}
+drawOval(
+brush = Brush.radialGradient(
+colors = listOf(nebulaColor, Color.Transparent),
+center = Offset(headCenter.x + cos(nebulaPhase) * 8f.dp.toPx(), headCenter.y + sin(nebulaPhase) * 6f.dp.toPx()),
+radius = nebulaRx
+),
+topLeft = Offset(headCenter.x - nebulaRx, headCenter.y - nebulaRy),
+size = Size(nebulaRx * 2, nebulaRy * 2)
+)
+}
+
+for (ring in 0 until 3) {
+val ringRadius = w * (0.38f + ring * 0.04f)
+val ringSpeed = 1.0f + ring * 0.3f
+val ringAlpha = (0.4f - ring * 0.1f) * intensity
+
+drawOval(
+color = Color(0xFFFFD700).copy(alpha = ringAlpha),
+topLeft = Offset(headCenter.x - ringRadius, headCenter.y - ringRadius * 0.3f),
+size = Size(ringRadius * 2, ringRadius * 0.6f),
+style = Stroke(width = 1.5f.dp.toPx(), cap = StrokeCap.Round)
+)
+
+for (body in 0 until 4) {
+val bodyAngle = t * ringSpeed + body * (Math.PI.toFloat() / 2f) + ring * 0.5f
+val bx = headCenter.x + cos(bodyAngle) * ringRadius
+val by = headCenter.y + sin(bodyAngle) * ringRadius * 0.3f
+
+when {
+body == 0 -> {
+drawCircle(color = Color.White, radius = 2.5f.dp.toPx(), center = Offset(bx, by))
+drawCircle(color = Color.White.copy(alpha = 0.4f), radius = 4f.dp.toPx(), center = Offset(bx, by))
+}
+body == 1 -> {
+drawCircle(color = Color(0xFF4FC3F7), radius = 3f.dp.toPx(), center = Offset(bx, by))
+drawCircle(color = Color(0xFF0277BD).copy(alpha = 0.6f), radius = 3.5f.dp.toPx(), center = Offset(bx, by), style = Stroke(width = 0.8f.dp.toPx()))
+}
+body == 2 -> {
+drawCircle(color = Color(0xFF795548), radius = 2f.dp.toPx(), center = Offset(bx, by))
+}
+else -> {
+drawCircle(color = Color(0xFFFFD700), radius = 2.2f.dp.toPx(), center = Offset(bx, by))
+for (tail in 1..3) {
+drawCircle(
+color = Color(0xFFFFD700).copy(alpha = (0.5f - tail * 0.15f)),
+radius = (2.2f - tail * 0.4f).dp.toPx(),
+center = Offset(bx - tail * 2f.dp.toPx() * cos(bodyAngle), by - tail * 2f.dp.toPx() * sin(bodyAngle))
+)
+}
+}
+}
+}
+}
+
+for (i in 0 until 12) {
+val starPhase = (t * 0.5f + i * 0.8f) % (2f * Math.PI.toFloat())
+val starX = headCenter.x + cos(starPhase + i) * w * (0.25f + (i % 3) * 0.08f)
+val starY = headCenter.y + sin(starPhase * 0.7f + i * 1.3f) * h * (0.20f + (i % 2) * 0.06f)
+val starAlpha = 0.3f + 0.5f * ((sin(starPhase * 3f) + 1f) / 2f)
+val starSize = (1.2f + (i % 3) * 0.6f).dp.toPx()
+
+drawCircle(
+color = Color.White.copy(alpha = starAlpha * intensity),
+radius = starSize,
+center = Offset(starX, starY)
+)
+}
+
+if (isStudying) {
+for (i in 0 until 3) {
+val shootPhase = (t * 2f + i * 2.1f) % (2f * Math.PI.toFloat())
+val shootProgress = (shootPhase / (2f * Math.PI.toFloat()))
+if (shootProgress < 0.3f) {
+val startX = headCenter.x - w * 0.4f + i * w * 0.15f
+val startY = headCenter.y - h * 0.3f + i * h * 0.1f
+val endX = headCenter.x + w * 0.4f - i * w * 0.15f
+val endY = headCenter.y + h * 0.3f - i * h * 0.1f
+val currentX = startX + (endX - startX) * (shootProgress / 0.3f)
+val currentY = startY + (endY - startY) * (shootProgress / 0.3f)
+val shootAlpha = if (shootProgress < 0.15f) shootProgress / 0.15f else (0.3f - shootProgress) / 0.15f
+
+drawCircle(color = Color.White, radius = 2f.dp.toPx(), center = Offset(currentX, currentY))
+for (tail in 1..4) {
+drawCircle(
+color = Color.White.copy(alpha = (0.6f - tail * 0.15f) * shootAlpha),
+radius = (2f - tail * 0.4f).dp.toPx(),
+center = Offset(currentX - tail * 3f.dp.toPx(), currentY - tail * 3f.dp.toPx())
+)
+}
+}
+}
+}
+
+if (isStudying) {
+val burstPhase = (t * 3f) % (2f * Math.PI.toFloat())
+val burstAlpha = sin(burstPhase) * 0.3f * intensity
+if (burstAlpha > 0f) {
+drawCircle(
+brush = Brush.radialGradient(
+colors = listOf(
+Color(0xFFFFD700).copy(alpha = burstAlpha),
+Color(0xFFFF6F00).copy(alpha = burstAlpha * 0.5f),
+Color.Transparent
+),
+center = headCenter,
+radius = w * 0.5f
+),
+center = headCenter,
+radius = w * 0.5f
+)
+}
+}
+
+val coreGlow = 0.6f + 0.4f * pulse * intensity
+drawCircle(
+brush = Brush.radialGradient(
+colors = listOf(
+Color(0xFFFFD700).copy(alpha = 0.8f * coreGlow),
+Color(0xFFFF6F00).copy(alpha = 0.4f * coreGlow),
+Color.Transparent
+),
+center = Offset(headCenter.x, headCenter.y - h * 0.32f),
+radius = w * 0.12f
+),
+center = Offset(headCenter.x, headCenter.y - h * 0.32f),
+radius = w * 0.12f
+)
 }
 
 private fun DrawScope.drawScholarHalo(headCenter: Offset, w: Float, h: Float, phase: Float) {

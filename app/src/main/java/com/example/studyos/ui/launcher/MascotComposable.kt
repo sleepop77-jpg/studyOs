@@ -405,7 +405,7 @@ fun MascotCanvas(
             drawStoryFront(state, cx, cy, w, h, head, storyPhase, glow)
 
             drawEquippedSkin(equippedSkin, cx, cy, w, h, head)
-            drawExtraSkins(equippedSkin, cx, cy, w, h, head, skinPhase)
+            drawExtraSkins(equippedSkin, cx, cy, w, h, head, skinPhase, state)
         }
     }
 }
