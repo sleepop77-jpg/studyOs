@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.example.studyos.core.Economy
+import com.example.studyos.core.Timer
 import com.example.studyos.ui.common.AnimatedBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.launcher.InteractiveMascot
@@ -73,10 +75,14 @@ fun BustedOverlayContent(
     onGrantTime: (Int) -> Unit = {},
     onReturn: () -> Unit
 ) {
-    var visible by remember { mutableStateOf(false) }
+        var visible by remember { mutableStateOf(false) }
     var showTimeSheet by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
     val streak by Economy.streak.collectAsState()
+    val strict by Timer.strict.collectAsState()
+    val seconds by Timer.seconds.collectAsState()
+    val total by Timer.total.collectAsState()
+    val running by Timer.running.collectAsState()
     val context = LocalContext.current
 
     val appIcon = remember(appPkg) {
@@ -121,41 +127,90 @@ fun BustedOverlayContent(
                         modifier = Modifier.size(26.dp)
                     )
 
-                    Surface(
-                        onClick = onUnblock,
-                        shape = RoundedCornerShape(50.dp),
-                        color = Color(0xFF1F1F1F)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
+                                        if (strict && running) {
+                        Surface(
+                            shape = RoundedCornerShape(50.dp),
+                            color = Color(0xFF3A0D12)
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.Block,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.85f),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                "Unblock app",
-                                color = Color.White.copy(alpha = 0.85f),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Lock,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFF8A80),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    "STRICT LOCK",
+                                    color = Color(0xFFFF8A80),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                        }
+                    } else {
+                        Surface(
+                            onClick = onUnblock,
+                            shape = RoundedCornerShape(50.dp),
+                            color = Color(0xFF1F1F1F)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Block,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.85f),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    "Unblock app",
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
                 }
 
-                Box(
+                                Box(
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    InteractiveMascot(
-                        state = MascotState.CRYING,
-                        size = 150.dp,
-                        showArc = false
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        InteractiveMascot(
+                            state = if (strict && running) MascotState.STUDYING else MascotState.CRYING,
+                            size = 150.dp,
+                            showArc = true,
+                            progressArc = if (total > 0) seconds.toFloat() / total.toFloat() else 1f
+                        )
+                        if (strict && running) {
+                            Text(
+                                String.format("%02d:%02d", seconds / 60, seconds % 60),
+                                color = Color.White,
+                                fontSize = 40.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 3.sp
+                            )
+                            Text(
+                                "STRICT MODE - KEEP FOCUSING",
+                                color = Color(0xFFFF8A80),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 2.sp
+                            )
+                        }
+                    }
                 }
 
                 Column(
@@ -224,8 +279,8 @@ fun BustedOverlayContent(
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            if (limitMinutes > 0) "LIMIT REACHED!" else "LOCKDOWN BREACH!",
+                                                Text(
+                            if (strict && running) "STRICT MODE BREACH!" else if (limitMinutes > 0) "LIMIT REACHED!" else "LOCKDOWN BREACH!",
                             color = Color.White,
                             fontWeight = FontWeight.Black,
                             fontSize = 14.sp,
@@ -285,16 +340,33 @@ fun BustedOverlayContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = { showTimeSheet = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF262626),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier.fillMaxWidth().height(56.dp)
-                ) {
-                    Text("Open $appName", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                if (strict && running) {
+                    Button(
+                        onClick = { },
+                        enabled = false,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1B1B1B),
+                            contentColor = Color.White.copy(alpha = 0.35f),
+                            disabledContainerColor = Color(0xFF1B1B1B),
+                            disabledContentColor = Color.White.copy(alpha = 0.35f)
+                        ),
+                        shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    ) {
+                        Text("Open $appName - LOCKED", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
+                } else {
+                    Button(
+                        onClick = { showTimeSheet = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF262626),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    ) {
+                        Text("Open $appName", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
