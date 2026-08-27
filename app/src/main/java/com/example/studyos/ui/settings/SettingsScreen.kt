@@ -72,7 +72,7 @@ fun SettingsScreen(back: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "StudyOS Settings", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp,
+                "StudyMore Settings", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp,
                 modifier = Modifier.padding(top = 16.dp).clickable {
                     taps += 1
                     if (taps >= 7) { taps = 0; showCode = true }
@@ -135,6 +135,15 @@ fun SettingsScreen(back: () -> Unit) {
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("+10,000 Fame", color = OnSurfaceDark, fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
+                        }
+
+                                                Button(
+                            onClick = { StudyMarket.addAdminWalnuts(50.0) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("+50 Golden Walnuts", color = Color(0xFF4A2C2C), fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 0.5.sp)
                         }
 
                         Button(

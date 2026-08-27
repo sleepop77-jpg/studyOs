@@ -44,6 +44,7 @@ import com.example.studyos.ui.lock.FocusLockActivity
 import com.example.studyos.ui.lockdown.LockdownScreen
 import com.example.studyos.ui.pomodoro.PomodoroScreen
 import com.example.studyos.ui.settings.SettingsScreen
+import com.example.studyos.ui.splash.SplashScreen
 import com.example.studyos.ui.stock.StocksScreen
 import com.example.studyos.ui.store.StoreScreen
 
@@ -80,8 +81,8 @@ class MainActivity : ComponentActivity() {
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFD9534F))) {
-                StudyOSNav()
+                        MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFD9534F))) {
+                StudyOSRoot()
             }
         }
     }
@@ -92,6 +93,17 @@ class MainActivity : ComponentActivity() {
         } catch (_: Exception) {
         }
         super.onDestroy()
+    }
+}
+
+@Composable
+private fun StudyOSRoot() {
+    var showSplash by remember { mutableStateOf(true) }
+
+    if (showSplash) {
+        SplashScreen(onDone = { showSplash = false })
+    } else {
+        StudyOSNav()
     }
 }
 

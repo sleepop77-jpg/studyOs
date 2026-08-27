@@ -90,7 +90,7 @@ fun LauncherScreen(nav: (String) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("StudyOS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp)
+                                        Text("StudyMore", color = Color.White, fontWeight = FontWeight.Black, fontSize = 24.sp, letterSpacing = 0.5.sp)
                     Text("Focus Economy", color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium, fontSize = 11.sp, letterSpacing = 1.sp)
                 }
 
