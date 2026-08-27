@@ -38,6 +38,7 @@ android {
 }
 
 dependencies {
+    implementation("com.airbnb.android:lottie-compose:6.4.0")
     implementation("com.github.getActivity:XXPermissions:20.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")
