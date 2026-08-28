@@ -22,6 +22,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -374,6 +378,16 @@ fun AnimatedThemePreview(themeId: String, size: Dp = 56.dp) {
             "theme_crimson_focus" -> listOf(lerp(Color(0xFF1D0505), Color(0xFFC41C3B), shift), Color(0xFF8B0000))
             else -> listOf(Color(0xFF000000), Color(0xFF0A0A0A))
         }
-        drawRect(brush = Brush.verticalGradient(colors), size = this.size)
-    }
+            drawRect(brush = Brush.verticalGradient(colors), size = this.size)
+}
+}
+
+@Composable
+fun BullPreview(size: Dp = 56.dp) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.Asset("bull_market.json"))
+    LottieAnimation(
+        composition = composition,
+        iterations = LottieConstants.IterateForever,
+        modifier = Modifier.size(size)
+    )
 }

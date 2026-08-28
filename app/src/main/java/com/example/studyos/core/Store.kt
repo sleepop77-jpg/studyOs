@@ -30,7 +30,8 @@ object Store {
         Item(id = "theme_sakura_drift", name = "Sakura Drift", description = "Midnight cherry blossoms with falling petals.", type = "Theme", cost = 450),
         Item(id = "theme_crimson_focus", name = "Crimson Focus", description = "Classic black & red focus theme.", type = "Theme", cost = 200),
         Item(id = "item_free_neon_ring", name = "Neon Ring (FREE)", description = "Free animated neon ring around the mascot.", type = "Mascot", cost = 0),
-        Item(id = "item_free_orbit", name = "Golden Orbit (FREE)", description = "Free animated golden orbit around the mascot.", type = "Mascot", cost = 0),
+        Item(id =  "item_free_orbit ", name =  "Golden Orbit (FREE) ", description =  "Free animated golden orbit around the mascot. ", type =  "Mascot ", cost = 0),
+Item(id = "item_big_bull", name = "The Big Bull", description = "The legendary golden bull of Dalal Street. Horns of fortune, nose ring of commitment.", type = "Mascot", cost = 1500),
 Item(id = "item_cosmic_scholar", name = "Cosmic Scholar Aura", description = "A rotating galaxy with orbiting planets, pulsing nebulae, and shooting stars. Intensifies during focus sessions.", type = "Mascot", cost = 800)
     )
 

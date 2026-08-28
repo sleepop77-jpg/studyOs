@@ -38,6 +38,7 @@ import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
 import com.example.studyos.ui.launcher.AnimatedMascotPreview
+import com.example.studyos.ui.launcher.BullPreview
 import com.example.studyos.ui.launcher.AnimatedSkins
 import com.example.studyos.ui.launcher.AnimatedThemePreview
 import com.example.studyos.ui.theme.AccentTeal
@@ -81,8 +82,9 @@ fun StoreScreen(back: () -> Unit) {
                     Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)), modifier = Modifier.fillMaxWidth()) {
                         Row(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                                when {
-                                    item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
+                                                            when {
+                                item.id == "item_big_bull" -> BullPreview(size = 56.dp)
+                                item.type == "Mascot" && item.id in AnimatedSkins.MASCOT_SET -> AnimatedMascotPreview(item.id, size = 56.dp)
                                     item.type == "Theme" -> AnimatedThemePreview(item.id, size = 56.dp)
                                     else -> Icon(SIcons.Bag, contentDescription = null, tint = Color(0xFFF5A623), modifier = Modifier.size(24.dp))
                                 }

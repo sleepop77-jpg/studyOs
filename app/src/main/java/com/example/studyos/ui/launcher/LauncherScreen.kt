@@ -53,6 +53,11 @@ import com.example.studyos.ui.common.RedAura
 import com.example.studyos.ui.common.RedPatchesBackground
 import com.example.studyos.ui.common.SIcons
 import com.example.studyos.ui.common.homeBrush
+import com.example.studyos.core.Store
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
 fun LauncherScreen(nav: (String) -> Unit) {
@@ -216,10 +221,21 @@ private fun MascotDoodleEditor(
             modifier = Modifier
                 .size(240.dp)
                 .scale(zoomScale)
-        ) {
-            InteractiveMascot(
-                state = if (running) MascotState.STUDYING else MascotState.IDLE,
-                size = 240.dp,
+            ) {
+        val equippedSkin by Store.equippedMascot.collectAsState(initial = null)
+        if (equippedSkin == "item_big_bull") {
+            val bullComp by rememberLottieComposition(LottieCompositionSpec.Asset("bull_market.json"))
+            Box(modifier = Modifier.size(430.dp), contentAlignment = Alignment.Center) {
+                LottieAnimation(
+                    composition = bullComp,
+                    iterations = LottieConstants.IterateForever,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+        InteractiveMascot(
+            state = if (running) MascotState.STUDYING else MascotState.IDLE,
+            size = 240.dp,
                 showArc = true,
                 progressArc = 0.85f
             )
