@@ -46,7 +46,7 @@ private data class BotProfile(
 )
 
 object StudyMarket {
-    const val USER_SYMBOL = "$YOU"
+    const val USER_SYMBOL = "\$YOU"
     private const val TOTAL_SHARES = 1000
     private const val DIVIDEND_RATE = 0.30
 
