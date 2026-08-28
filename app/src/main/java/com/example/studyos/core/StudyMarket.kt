@@ -9,9 +9,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
+import kotlin.math.sin
 
 data class MarketStock(
     val symbol: String,
@@ -45,7 +46,7 @@ private data class BotProfile(
 )
 
 object StudyMarket {
-    const val USER_SYMBOL = "\$YOU"
+    const val USER_SYMBOL = "$YOU"
     private const val TOTAL_SHARES = 1000
     private const val DIVIDEND_RATE = 0.30
 
@@ -58,7 +59,9 @@ object StudyMarket {
     val priceHistory = MutableStateFlow<Map<String, List<Double>>>(emptyMap())
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val random = Random(System.currentTimeMillis())
+    private var tickCount = 0L
+    private var leaderSymbol: String? = null
+    private val seasonPrev = mutableMapOf<String, Double>()
     private lateinit var prefs: SharedPreferences
     private var started = false
 
@@ -171,33 +174,75 @@ object StudyMarket {
         addEvent("You opened $appName. $USER_SYMBOL crashed 12%", false)
     }
 
-    private fun tick() {
-        ensureStocks()
-        bots.forEach { simulateBot(it) }
+    private fun hash01(a: Long, b: Int): Double {
+        val x = sin(a * 12.9898 + b * 78.233) * 43758.5453
+        return x - floor(x)
     }
 
-    private fun simulateBot(bot: BotProfile) {
-        val studyChance = 0.10 + bot.discipline * 0.14
-        val bustChance = (1.0 - bot.discipline) * 0.08
-        val roll = random.nextDouble()
-        if (roll < studyChance) {
-            val minutes = listOf(25, 50, 90).random(random)
-            val pump = 1.2 + (minutes / 20.0) * (0.7 + random.nextDouble() * 0.9)
-            updatePrice(bot.symbol, pump, "${bot.name} studied")
+    private fun seasonFor(index: Int): Double {
+        val lengths = doubleArrayOf(96.0, 64.0, 128.0, 48.0, 80.0)
+        val l = lengths[index % lengths.size]
+        return sin(tickCount * 2.0 * Math.PI / l + index * 1.7)
+    }
+
+    private fun tick() {
+        ensureStocks()
+        tickCount++
+        var bestSymbol: String? = null
+        var bestSeason = -2.0
+        bots.forEachIndexed { index, bot ->
+            val s = seasonFor(index)
+            if (s > bestSeason) {
+                bestSeason = s
+                bestSymbol = bot.symbol
+            }
+            simulateBot(bot, index, s)
+            val prev = seasonPrev[bot.symbol] ?: 0.0
+            if (prev < 0.75 && s >= 0.75) addEvent("HOT STREAK: ${bot.name} is entering a bull season. ${bot.symbol} heating up", true)
+            if (prev > -0.75 && s <= -0.75) addEvent("COLD STREAK: ${bot.name} is entering a bear season. ${bot.symbol} cooling down", false)
+            seasonPrev[bot.symbol] = s
+        }
+        val newLeader = bestSymbol
+        if (newLeader != null && newLeader != leaderSymbol) {
+            addEvent("MARKET ROTATION: smart money is rotating into $newLeader", true)
+            leaderSymbol = newLeader
+        }
+    }
+
+    private fun simulateBot(bot: BotProfile, index: Int, s: Double) {
+        val t = tickCount
+        val vol = 0.8 + bot.aggression * 1.6
+        val wave = sin(t * 2.0 * Math.PI / 9.0 + index * 1.3)
+        val noise = (hash01(t, index) - 0.5) * 0.9
+        var percent = vol * (s * 1.1 + wave * 0.45 + noise)
+
+        val every = 24L + index * 6L
+        if (t % every == 0L) {
+            val good = hash01(t / every, index + 40) > 0.45
+            percent += if (good) 3.0 + hash01(t, index + 7) * 4.0 else -(3.0 + hash01(t, index + 9) * 5.0)
+            updatePrice(bot.symbol, percent, if (good) "${bot.name} aced a mock exam" else "${bot.name} got distracted")
+            addEvent("${bot.name} ${if (good) "aced a mock exam" else "got distracted"}. ${bot.symbol} ${percent.f1()}%", good)
+        } else {
+            updatePrice(bot.symbol, percent, if (percent >= 0) "${bot.name} studied" else "${bot.name} lost discipline")
+            if (percent > 1.2) addEvent("${bot.name} completed a focus block. ${bot.symbol} +${percent.f1()}%", true)
+            if (percent < -1.2) addEvent("${bot.name} lost focus. ${bot.symbol} ${percent.f1()}%", false)
+        }
+
+        if (percent > 1.5) {
+            val minutes = if (s > 0.5) 90 else if (s > 0.0) 50 else 25
             payBotDividend(bot, minutes)
-            addEvent("${bot.name} completed ${minutes}m. ${bot.symbol} +${pump.f1()}%", true)
-        } else if (roll < studyChance + bustChance) {
-            val crash = -(4.0 + random.nextDouble() * 14.0)
-            updatePrice(bot.symbol, crash, "${bot.name} lost discipline")
-            addEvent("${bot.name} got distracted. ${bot.symbol} ${crash.f1()}%", false)
         }
-        if (random.nextDouble() < bot.aggression * 0.10) {
-            val target = bots.filter { it.id != bot.id }.random(random)
-            val buying = random.nextBoolean()
-            updatePrice(target.symbol, if (buying) 0.8 else -0.8, "Bot trade")
-            addEvent("${bot.name} ${if (buying) "bought" else "sold"} ${target.symbol}", buying)
+
+        if ((t + index * 5L) % 19L == 0L) {
+            val target = bots[((index + (t / 19L)).toInt()) % bots.size]
+            if (target.id != bot.id) {
+                val buying = hash01(t, index + 21) > 0.5
+                updatePrice(target.symbol, if (buying) 0.8 else -0.8, "Bot trade")
+                addEvent("${bot.name} ${if (buying) "bought" else "sold"} ${target.symbol}", buying)
+            }
         }
-        if (random.nextDouble() < 0.02) {
+
+        if (t % 53L == index * 7L) {
             updatePrice(USER_SYMBOL, 1.5, "Bot invested in you")
             addEvent("${bot.name} invested in your potential. $USER_SYMBOL +1.5%", true)
         }
@@ -227,11 +272,10 @@ object StudyMarket {
             streak = if (percent > 0) stock.streak + 1 else 0
         )
         stocks.value = map
-        
         val historyMap = priceHistory.value.toMutableMap()
         val history = historyMap[symbol]?.toMutableList() ?: mutableListOf(stock.price)
         history.add(newPrice)
-        if (history.size > 20) history.removeAt(0)
+        while (history.size > 300) history.removeAt(0)
         historyMap[symbol] = history
         priceHistory.value = historyMap
     }
@@ -263,7 +307,6 @@ object StudyMarket {
             MarketStock("\$ZAYD", "Zayd", true, 18.0, TOTAL_SHARES, 1, 0.0, "Chaotic but ambitious bot"),
             MarketStock("\$KAI", "Kai", true, 33.0, TOTAL_SHARES, 4, 0.0, "Balanced bot")
         ).associateBy { it.symbol }
-        
         priceHistory.value = stocks.value.mapValues { (_, stock) ->
             listOf(stock.price, stock.price * 0.97, stock.price * 1.02, stock.price * 0.99, stock.price)
         }
@@ -288,7 +331,6 @@ object StudyMarket {
             }
         }
         holdings.value = map
-        
         val historyRaw = prefs.getStringSet("price_history", emptySet()) ?: emptySet()
         val historyMap = mutableMapOf<String, List<Double>>()
         historyRaw.forEach { line ->
@@ -311,7 +353,7 @@ object StudyMarket {
             .apply()
         saveHistory()
     }
-    
+
     private fun saveHistory() {
         if (!::prefs.isInitialized) return
         val raw = priceHistory.value.map { (symbol, prices) ->
