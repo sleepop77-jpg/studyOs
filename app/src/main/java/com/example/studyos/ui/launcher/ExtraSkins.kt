@@ -384,10 +384,14 @@ fun AnimatedThemePreview(themeId: String, size: Dp = 56.dp) {
 
 @Composable
 fun BullPreview(size: Dp = 56.dp) {
-    val composition by rememberLottieComposition(LottieCompositionSpec.Asset("bull_market.json"))
-    LottieAnimation(
-        composition = composition,
-        iterations = LottieConstants.IterateForever,
-        modifier = Modifier.size(size)
-    )
+    val composition by rememberLottieComposition(LottieCompositionSpec.JsonString(BullLottie.JSON))
+    if (composition != null) {
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier.size(size)
+        )
+    } else {
+        CanvasBull(modifier = Modifier.size(size))
+    }
 }

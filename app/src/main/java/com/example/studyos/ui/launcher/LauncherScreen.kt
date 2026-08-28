@@ -224,13 +224,17 @@ private fun MascotDoodleEditor(
             ) {
         val equippedSkin by Store.equippedMascot.collectAsState(initial = null)
         if (equippedSkin == "item_big_bull") {
-            val bullComp by rememberLottieComposition(LottieCompositionSpec.Asset("bull_market.json"))
+                        val bullComp by rememberLottieComposition(LottieCompositionSpec.JsonString(BullLottie.JSON))
             Box(modifier = Modifier.size(430.dp), contentAlignment = Alignment.Center) {
-                LottieAnimation(
-                    composition = bullComp,
-                    iterations = LottieConstants.IterateForever,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (bullComp != null) {
+                    LottieAnimation(
+                        composition = bullComp,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    CanvasBull(modifier = Modifier.fillMaxSize())
+                }
             }
         }
         InteractiveMascot(
