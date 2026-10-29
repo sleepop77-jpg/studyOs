@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,11 +61,15 @@ fun SettingsScreen(back: () -> Unit) {
     var showCode by remember { mutableStateOf(false) }
     
     val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-    val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
-    val isAntiDeleteActive = dpm.isAdminActive(adminComponent)
-    
-    var showAntiDeleteWarning by remember { mutableStateOf(false) }
-    var showDeactivateWarning by remember { mutableStateOf(false) }
+val adminComponent = ComponentName(context, StudyAdminReceiver::class.java)
+var isAntiDeleteActive by remember { mutableStateOf(dpm.isAdminActive(adminComponent)) }
+val adminActivationLauncher = rememberLauncherForActivityResult(
+ActivityResultContracts.StartActivityForResult()
+) {
+isAntiDeleteActive = dpm.isAdminActive(adminComponent)
+}
+
+var showAntiDeleteWarning by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(homeBrush())) {
         RedPatchesBackground()
@@ -106,17 +112,16 @@ fun SettingsScreen(back: () -> Unit) {
                         else "Prevents you from uninstalling the app. For those who need forced commitment.",
                         fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f), lineHeight = 20.sp
                     )
-                    Button(
-                        onClick = { 
-                            if (isAntiDeleteActive) showDeactivateWarning = true 
-                            else showAntiDeleteWarning = true 
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isAntiDeleteActive) Color(0xFF4A2C2C) else Color(0xFFD9534F)),
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(if (isAntiDeleteActive) "Deactivate Anti-Delete" else "Activate Anti-Delete", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
+                    if (!isAntiDeleteActive) {
+Button(
+onClick = { showAntiDeleteWarning = true },
+colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD9534F)),
+modifier = Modifier.fillMaxWidth().height(44.dp),
+shape = RoundedCornerShape(12.dp)
+) {
+Text("Activate Anti-Delete", color = Color.White, fontWeight = FontWeight.Bold)
+}
+}
                 }
             }
 
@@ -186,7 +191,7 @@ fun SettingsScreen(back: () -> Unit) {
                             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
                             putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "StudyOS needs this to prevent you from quitting on your goals.")
                         }
-                        context.startActivity(intent)
+                        adminActivationLauncher.launch(intent)
                                                 } catch (e: Exception) {
                             Toast.makeText(context, "Please go to Settings > Security > Device Admin Apps to enable StudyOS.", Toast.LENGTH_LONG).show()
                         }
@@ -198,23 +203,7 @@ fun SettingsScreen(back: () -> Unit) {
         )
     }
 
-    if (showDeactivateWarning) {
-        AlertDialog(
-            onDismissRequest = { showDeactivateWarning = false },
-            title = { Text("GIVING UP?", fontWeight = FontWeight.Black, color = Color(0xFFFFD700)) },
-            text = { Text("Don't quit! Your mascot will cry, and your stocks will crash. Are you sure you want to remove your anti-delete protection?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        dpm.removeActiveAdmin(adminComponent)
-                        showDeactivateWarning = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A2C2C))
-                ) { Text("Yes, I quit", fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = { TextButton(onClick = { showDeactivateWarning = false }) { Text("No, keep it!", color = Color(0xFF4CAF50)) } }
-        )
-    }
+    // In-app Anti-Delete deactivation control intentionally removed.
 
     if (showCode) {
         var code by remember { mutableStateOf("") }
