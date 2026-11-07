@@ -824,68 +824,35 @@ z: Float,
 scale: Float,
 alphaMultiplier: Float
 ) {
-System.arraycopy(
-parentMatrix,
-0,
-auraModelMatrix,
-0,
-16
-)
+// Reuse the renderer's existing matrices. The original crown transform
+// is copied once per frame before the orb loop.
+System.arraycopy(parentMatrix, 0, modelMatrix, 0, 16)
 
-Matrix.translateM(
-auraModelMatrix,
-0,
-x,
-y,
-z
-)
-
-Matrix.scaleM(
-auraModelMatrix,
-0,
-scale,
-scale,
-scale
-)
+Matrix.translateM(modelMatrix, 0, x, y, z)
+Matrix.scaleM(modelMatrix, 0, scale, scale, scale)
 
 Matrix.multiplyMM(
-auraModelViewMatrix,
+modelViewMatrix,
 0,
 viewMatrix,
 0,
-auraModelMatrix,
+modelMatrix,
 0
 )
 
 Matrix.multiplyMM(
-auraMvpMatrix,
+mvpMatrix,
 0,
 projectionMatrix,
 0,
-auraModelViewMatrix,
+modelViewMatrix,
 0
 )
 
-GLES20.glUniformMatrix4fv(
-mvpHandle,
-1,
-false,
-auraMvpMatrix,
-0
-)
+GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvpMatrix, 0)
+GLES20.glUniformMatrix4fv(modelViewHandle, 1, false, modelViewMatrix, 0)
 
-GLES20.glUniformMatrix4fv(
-modelViewHandle,
-1,
-false,
-auraModelViewMatrix,
-0
-)
-
-drawPart(
-part = part,
-alphaMultiplier = alphaMultiplier
-)
+drawPart(part = part, alphaMultiplier = alphaMultiplier)
 }
 
 private fun drawPart(
