@@ -86,13 +86,15 @@ var showAntiDeleteWarning by remember { mutableStateOf(false) }
                 }
             )
 
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("ECONOMY RULES", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color(0xFFC94440), letterSpacing = 1.5.sp)
+            VisualSettingsCard()
+
+Card(
+shape = RoundedCornerShape(18.dp),
+colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+modifier = Modifier.fillMaxWidth()
+) {
+Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+Text("ECONOMY RULES", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color(0xFFC94440), letterSpacing = 1.5.sp)
                     Text(
                         "+2 Fame per minute in active sessions\n+1 Shame per minute idle (5 AM to 10 PM)\nDanger hours 4 to 6 PM: x3 Shame\nFame buys store cosmetics",
                         fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f), lineHeight = 20.sp, letterSpacing = 0.3.sp

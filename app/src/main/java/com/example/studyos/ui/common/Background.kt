@@ -226,8 +226,8 @@ fun RedPatchesBackground() {
 
     val c1 = if (isCrimson) Color(0xFFC41C3B) else Color(0xFFFFFFFF)
     val c2 = if (isCrimson) Color(0xFF8B0000) else Color(0xFF9A9A9A)
-    val a1 = if (isCrimson) 0.15f else 0.05f
-    val a2 = if (isCrimson) 0.12f else 0.04f
+    val a1 = (if (isCrimson) 0.15f else 0.05f) * effectBrightness
+val a2 = (if (isCrimson) 0.12f else 0.04f) * effectBrightness
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawCircle(

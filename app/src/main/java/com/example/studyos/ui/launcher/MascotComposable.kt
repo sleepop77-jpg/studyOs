@@ -264,11 +264,14 @@ fun MascotCanvas(
     )
 
     val storyPhase by t.animateFloat(
-        0f,
-        1f,
-        infiniteRepeatable(tween(2800, easing = LinearEasing), RepeatMode.Restart),
-        label = "storyPhase"
-    )
+0f,
+if (motionMode == 2) 0f else 1f,
+if (motionMode == 2) tween(0) else infiniteRepeatable(
+tween(if (motionMode == 1) 14000 else 2800, easing = LinearEasing),
+RepeatMode.Restart
+),
+label = "storyPhase"
+)
 
     val isStudying = state == MascotState.STUDYING || state == MascotState.BURNING || state == MascotState.WORKING_HARD
     val isSleeping = state == MascotState.SLEEPING

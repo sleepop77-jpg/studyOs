@@ -131,9 +131,14 @@ private fun StudyOSNav() {
     AnimatedContent(
         targetState = route,
         transitionSpec = {
-            (scaleIn(animationSpec = tween(280), initialScale = 0.88f) + fadeIn(animationSpec = tween(280)))
-                .togetherWith(scaleOut(animationSpec = tween(280), targetScale = 1.08f) + fadeOut(animationSpec = tween(280)))
-        },
+when (motionMode) {
+2 -> EnterTransition.None togetherWith ExitTransition.None
+1 -> fadeIn(animationSpec = tween(120))
+.togetherWith(fadeOut(animationSpec = tween(120)))
+else -> (scaleIn(animationSpec = tween(280), initialScale = 0.88f) + fadeIn(animationSpec = tween(280)))
+.togetherWith(scaleOut(animationSpec = tween(280), targetScale = 1.08f) + fadeOut(animationSpec = tween(280)))
+}
+},
         label = "appOpen"
     ) { target ->
         when (target) {

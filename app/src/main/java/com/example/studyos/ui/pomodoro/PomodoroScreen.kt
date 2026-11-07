@@ -72,7 +72,7 @@ import nl.dionsegijn.konfetti.core.emitter.Emitter
 
 @Composable
 fun PomodoroScreen(back: () -> Unit) {
-    val seconds by Timer.seconds.collectAsState()
+    val seconds by Timer.displaySeconds.collectAsState()
     val total by Timer.total.collectAsState()
     val running by Timer.running.collectAsState()
     val strict by Timer.strict.collectAsState()

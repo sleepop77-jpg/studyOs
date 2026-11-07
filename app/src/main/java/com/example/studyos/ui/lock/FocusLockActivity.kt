@@ -69,7 +69,7 @@ class FocusLockActivity : ComponentActivity() {
 @Composable
 private fun FocusLockScreen(onClose: () -> Unit) {
     val context = LocalContext.current
-    val seconds by Timer.seconds.collectAsState()
+    val seconds by Timer.displaySeconds.collectAsState()
     val total by Timer.total.collectAsState()
     val running by Timer.running.collectAsState()
 

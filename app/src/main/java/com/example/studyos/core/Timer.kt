@@ -37,8 +37,13 @@ object Timer {
                         StudyMarket.onUserSessionCompleted(mins, strict.value)
 
                         seconds.value = total.value
-                    }
-                }
+displaySeconds.value = seconds.value
+}
+
+fun refreshDisplay() {
+displaySeconds.value = seconds.value
+}
+}
             }
         }
     }

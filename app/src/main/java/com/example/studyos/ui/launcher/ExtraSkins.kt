@@ -485,10 +485,34 @@ fun AnimatedMascotPreview(skinId: String, size: Dp = 56.dp) {
         val w = this.size.width
         val h = this.size.height
         val headCenter = Offset(w / 2f, h * 0.58f)
-        drawOval(color = Color(0xFFFFF7F6), topLeft = Offset(headCenter.x - w * 0.26f, headCenter.y - h * 0.24f), size = Size(w * 0.52f, h * 0.48f))
-        drawCircle(Color(0xFF2D2D2D), 1.8f.dp.toPx(), Offset(headCenter.x - 6.dp.toPx(), headCenter.y - 2.dp.toPx()))
-        drawCircle(Color(0xFF2D2D2D), 1.8f.dp.toPx(), Offset(headCenter.x + 6.dp.toPx(), headCenter.y - 2.dp.toPx()))
-        drawExtraSkins(skinId, w / 2f, h / 2f, w, h, headCenter, phase)
+
+if (skinId == AnimatedSkins.QUIET_ORB) {
+val radius = w * 0.30f
+drawCircle(
+brush = Brush.radialGradient(
+listOf(Color.White, Color(0xFFEAEAEA)),
+center = Offset(headCenter.x - radius * 0.3f, headCenter.y - radius * 0.4f),
+radius = radius * 1.8f
+),
+radius = radius,
+center = headCenter
+)
+drawCircle(
+Color(0xFF202020),
+2.1f.dp.toPx(),
+Offset(headCenter.x - 6.dp.toPx(), headCenter.y - 2.dp.toPx())
+)
+drawCircle(
+Color(0xFF202020),
+2.1f.dp.toPx(),
+Offset(headCenter.x + 6.dp.toPx(), headCenter.y - 2.dp.toPx())
+)
+} else {
+drawOval(color = Color(0xFFFFF7F6), topLeft = Offset(headCenter.x - w * 0.26f, headCenter.y - h * 0.24f), size = Size(w * 0.52f, h * 0.48f))
+drawCircle(Color(0xFF2D2D2D), 1.8f.dp.toPx(), Offset(headCenter.x - 6.dp.toPx(), headCenter.y - 2.dp.toPx()))
+drawCircle(Color(0xFF2D2D2D), 1.8f.dp.toPx(), Offset(headCenter.x + 6.dp.toPx(), headCenter.y - 2.dp.toPx()))
+drawExtraSkins(skinId, w / 2f, h / 2f, w, h, headCenter, phase)
+}
     }
 }
 
