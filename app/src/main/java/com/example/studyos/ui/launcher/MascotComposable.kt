@@ -267,11 +267,14 @@ label = "glow"
 )
 
     val storyPhase by t.animateFloat(
-0f,
-if (motionMode == 2) 0f else 1f,
-if (motionMode == 2) tween(0) else infiniteRepeatable(
-tween(if (motionMode == 1) 14000 else 2800, easing = LinearEasing),
-RepeatMode.Restart
+initialValue = 0f,
+targetValue = if (motionMode == 2) 0f else 1f,
+animationSpec = infiniteRepeatable(
+animation = tween(
+durationMillis = if (motionMode == 1) 14000 else 2800,
+easing = LinearEasing
+),
+repeatMode = RepeatMode.Restart
 ),
 label = "storyPhase"
 )
