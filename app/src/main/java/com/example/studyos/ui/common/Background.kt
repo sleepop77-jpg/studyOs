@@ -33,8 +33,8 @@ fun homeBrush(): Brush {
             listOf(Color(0xFF000000), Color(0xFF021002), Color(0xFF000000))
         )
         "item_spanish_fiesta" -> Brush.verticalGradient(
-            listOf(Color(0xFF0B0303), Color(0xFF1D0505), Color(0xFF0B0303))
-        )
+listOf(Color(0xFF1A0D0B), Color(0xFF573026), Color(0xFF2B1824))
+)
         "theme_void_nexus" -> Brush.verticalGradient(
 listOf(Color(0xFF05030B), Color(0xFF17102D), Color(0xFF030208))
 )

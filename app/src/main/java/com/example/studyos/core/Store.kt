@@ -64,15 +64,16 @@ if (unlocked.value.contains(item.id)) return true
     }
 
     fun equip(id: String) {
-        val normalizedId = id.trim()
+val normalizedId = id.trim()
 val item = ITEMS.firstOrNull { it.id == normalizedId } ?: return
-        if (!unlocked.value.contains(id)) return
-        when (item.type) {
-            "Mascot" -> equippedMascot.value = id
-            "Theme" -> equippedTheme.value = id
-        }
-        save()
-    }
+if (!unlocked.value.contains(item.id)) return
+
+when (item.type) {
+"Mascot" -> equippedMascot.value = item.id
+"Theme" -> equippedTheme.value = item.id
+}
+save()
+}
 
     fun unlockAll() {
         unlocked.value = ITEMS.map { it.id }.toSet()
