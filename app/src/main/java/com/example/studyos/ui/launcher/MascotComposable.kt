@@ -220,6 +220,7 @@ fun MascotCanvas(
 ) {
     val equippedSkin by Store.equippedMascot.collectAsState(initial = null)
 val motionMode by VisualSettings.motionMode.collectAsState()
+val effectBrightness by VisualSettings.effectBrightness.collectAsState()
 
 // Quiet Orb is a complete mascot replacement, not an accessory.
 if (equippedSkin?.trim() == AnimatedSkins.QUIET_ORB) {
