@@ -23,7 +23,7 @@ object Store {
         Item(id = "item_aurora_dream", name = "Aurora Dream", description = "Animated northern-light study background.", type = "Theme", cost = 260),
         Item(id = "item_math_matrix", name = "Math Matrix", description = "Dark green matrix-inspired theme.", type = "Theme", cost = 180),
         Item(id = "item_spanish_fiesta", name = "Sol & Coral Palette", description = "Warm Andalusian sunset colors.", type = "Theme", cost = 200),
-        Item(id = "item_astral_crown", name = "Astral Crown", description = "Holographic crown with orbiting constellations.", type = "Mascot", cost = 450),
+        Item(id = "item_astral_crown", name = "Crown", description = "A royal purple 3D crown with polished metal, faceted amethyst gemstones and animated reflections.", type = "Mascot", cost = 450),
         Item(id = "item_dragon_aura", name = "Dragon Aura", description = "Animated ethereal dragon flames and floating embers.", type = "Mascot", cost = 500),
         Item(id = "item_neon_katana", name = "Neon Katana", description = "Cyberpunk glowing katana resting on the desk.", type = "Mascot", cost = 400),
         Item(id = "theme_void_nexus", name = "Void Nexus", description = "Deep space anomaly with swirling dark matter.", type = "Theme", cost = 400),

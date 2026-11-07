@@ -479,7 +479,18 @@ drawLine(Color(0xFFFFD54F), Offset(handle.x - 4.dp.toPx(), handle.y - 1.dp.toPx(
 
 @Composable
 fun AnimatedMascotPreview(skinId: String, size: Dp = 56.dp) {
-    val transition = rememberInfiniteTransition(label = "skin_preview")
+
+// Display the actual 3D Crown model in the Store preview as well.
+if (skinId == AnimatedSkins.ASTRAL) {
+Crown3DView(
+modifier = Modifier.size(size),
+motionMode = 0,
+effectBrightness = 0.85f
+)
+return
+}
+
+val transition = rememberInfiniteTransition(label = "skin_preview")
     val phase by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Restart), label = "phase")
 
     Canvas(Modifier.size(size)) {

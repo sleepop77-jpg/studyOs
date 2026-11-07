@@ -430,9 +430,36 @@ label = "storyPhase"
 
             drawStoryFront(state, cx, cy, w, h, head, storyPhase, glow)
 
-            drawExtraSkins(equippedSkin, cx, cy, w, h, head, skinPhase, state)
-        }
-    }
+            if (equippedSkin != AnimatedSkins.ASTRAL) {
+drawExtraSkins(
+equippedSkin,
+cx,
+cy,
+w,
+h,
+head,
+skinPhase,
+state
+)
+}
+}
+
+// The Crown is rendered by a real OpenGL 3D mesh.
+// Its transparent surface sits over the original mascot.
+if (equippedSkin == AnimatedSkins.ASTRAL) {
+Crown3DView(
+modifier = Modifier
+.align(Alignment.TopCenter)
+.offset(y = (-3).dp)
+.size(
+width = size * 0.72f,
+height = size * 0.43f
+),
+motionMode = motionMode,
+effectBrightness = effectBrightness
+)
+}
+}
 }
 
 private fun DrawScope.drawQuietOrbMascot(
