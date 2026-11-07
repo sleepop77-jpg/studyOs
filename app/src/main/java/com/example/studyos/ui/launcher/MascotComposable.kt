@@ -221,6 +221,21 @@ fun MascotCanvas(
     val equippedSkin by Store.equippedMascot.collectAsState(initial = null)
 val motionMode by VisualSettings.motionMode.collectAsState()
 
+// Quiet Orb is a complete mascot replacement, not an accessory.
+if (equippedSkin?.trim() == AnimatedSkins.QUIET_ORB) {
+Canvas(Modifier.size(size)) {
+drawQuietOrbMascot(
+cx = this.size.width / 2f,
+cy = this.size.height / 2f,
+w = this.size.width,
+h = this.size.height,
+showArc = showArc,
+progressArc = progressArc
+)
+}
+return
+}
+
 val t = rememberInfiniteTransition(label = "mascot")
 
     val breath by t.animateFloat(
