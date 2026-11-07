@@ -730,11 +730,73 @@ private class Crown3DRenderer : GLSurfaceView.Renderer {
         )
 
         parts.forEach { part ->
-            drawPart(part)
-        }
+drawPart(part)
+}
 
-        GLES20.glDisableVertexAttribArray(positionHandle)
-        GLES20.glDisableVertexAttribArray(normalHandle)
+// Draw the animated purple aura around the crown.
+val haze = auraHazePart
+val core = auraCorePart
+
+if (effectBrightness > 0.01f && haze != null && core != null) {
+GLES20.glDepthMask(false)
+
+val auraClock = when (mode) {
+2 -> 0f
+1 -> seconds * 0.42f
+else -> seconds
+}
+
+auraOrbs.forEach { orb ->
+val pulse = if (mode == 2) {
+0.5f
+} else {
+(sin(auraClock * 1.45f + orb.phase) + 1f) * 0.5f
+}
+
+val growth = 0.72f + pulse * 0.58f
+
+val driftX = if (mode == 2) {
+0f
+} else {
+sin(auraClock * 0.55f + orb.phase) * 0.035f
+}
+
+val driftY = if (mode == 2) {
+0f
+} else {
+cos(auraClock * 0.72f + orb.phase) * 0.055f
+}
+
+val orbScale = orb.baseScale * growth
+val orbX = orb.x + driftX
+val orbY = orb.y + driftY
+
+drawAuraPart(
+part = haze,
+parentMatrix = modelMatrix,
+x = orbX,
+y = orbY,
+z = orb.z,
+scale = orbScale * 1.70f,
+alphaMultiplier = effectBrightness * 0.88f
+)
+
+drawAuraPart(
+part = core,
+parentMatrix = modelMatrix,
+x = orbX,
+y = orbY,
+z = orb.z + 0.012f,
+scale = orbScale * 0.58f,
+alphaMultiplier = effectBrightness
+)
+}
+
+GLES20.glDepthMask(true)
+}
+
+GLES20.glDisableVertexAttribArray(positionHandle)
+GLES20.glDisableVertexAttribArray(normalHandle)
     }
 
     private fun buildAuraSphere(material: CrownMaterial): CrownPart? {
