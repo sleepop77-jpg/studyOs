@@ -20,12 +20,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.example.studyos.core.Store
 import com.example.studyos.core.VisualSettings
-import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
 fun homeBrush(): Brush {
     val theme by Store.equippedTheme.collectAsState(initial = null)
+
     return when (theme) {
         "item_aurora_dream" -> Brush.verticalGradient(
             listOf(Color(0xFF010308), Color(0xFF041018), Color(0xFF010308))
@@ -34,17 +34,17 @@ fun homeBrush(): Brush {
             listOf(Color(0xFF000000), Color(0xFF021002), Color(0xFF000000))
         )
         "item_spanish_fiesta" -> Brush.verticalGradient(
-listOf(Color(0xFF1A0D0B), Color(0xFF573026), Color(0xFF2B1824))
-)
+            listOf(Color(0xFF1A0D0B), Color(0xFF573026), Color(0xFF2B1824))
+        )
         "theme_void_nexus" -> Brush.verticalGradient(
-listOf(Color(0xFF05030B), Color(0xFF17102D), Color(0xFF030208))
-)
-"theme_sakura_drift" -> Brush.verticalGradient(
-listOf(Color(0xFF080B18), Color(0xFF241629), Color(0xFF080B18))
-)
-"theme_crimson_focus" -> Brush.verticalGradient(
-listOf(Color(0xFF000000), Color(0xFF140505), Color(0xFF1D0505))
-)
+            listOf(Color(0xFF05030B), Color(0xFF17102D), Color(0xFF030208))
+        )
+        "theme_sakura_drift" -> Brush.verticalGradient(
+            listOf(Color(0xFF080B18), Color(0xFF241629), Color(0xFF080B18))
+        )
+        "theme_crimson_focus" -> Brush.verticalGradient(
+            listOf(Color(0xFF000000), Color(0xFF140505), Color(0xFF1D0505))
+        )
         else -> Brush.verticalGradient(
             listOf(Color(0xFF000000), Color(0xFF0A0A0A), Color(0xFF000000))
         )
@@ -53,23 +53,29 @@ listOf(Color(0xFF000000), Color(0xFF140505), Color(0xFF1D0505))
 
 @Composable
 fun AnimatedBackground() {
-val theme by Store.equippedTheme.collectAsState(initial = null)
-val particleAccent = when (theme) {
-"item_aurora_dream" -> Color(0xFF40C4FF)
-"item_math_matrix" -> Color(0xFF00E676)
-"item_spanish_fiesta" -> Color(0xFFFFA726)
-"theme_void_nexus" -> Color(0xFFB388FF)
-"theme_sakura_drift" -> Color(0xFFFF80AB)
-"theme_crimson_focus" -> Color(0xFFE53935)
-else -> Color(0xFFFFD180)
-}
+    val theme by Store.equippedTheme.collectAsState(initial = null)
+    val motionMode by VisualSettings.motionMode.collectAsState()
+    val brightness by VisualSettings.effectBrightness.collectAsState()
 
-val transition = rememberInfiniteTransition(label = "bg_particles")
+    val particleAccent = when (theme) {
+        "item_aurora_dream" -> Color(0xFF40C4FF)
+        "item_math_matrix" -> Color(0xFF00E676)
+        "item_spanish_fiesta" -> Color(0xFFFFA726)
+        "theme_void_nexus" -> Color(0xFFB388FF)
+        "theme_sakura_drift" -> Color(0xFFFF80AB)
+        "theme_crimson_focus" -> Color(0xFFE53935)
+        else -> Color(0xFFFFD180)
+    }
+
+    val transition = rememberInfiniteTransition(label = "bg_particles")
     val phase by transition.animateFloat(
         initialValue = 0f,
-        targetValue = 1f,
+        targetValue = if (motionMode == 2) 0f else 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(12000, easing = LinearEasing),
+            animation = tween(
+                durationMillis = if (motionMode == 1) 40000 else 12000,
+                easing = LinearEasing
+            ),
             repeatMode = RepeatMode.Restart
         ),
         label = "particle_phase"
@@ -79,138 +85,164 @@ val transition = rememberInfiniteTransition(label = "bg_particles")
         val w = size.width
         val h = size.height
 
-        // Floating stars
-        for (i in 0 until 35) {
+        val starCount = when (motionMode) {
+            0 -> 35
+            1 -> 10
+            else -> 10
+        }
+
+        for (i in 0 until starCount) {
             val baseX = ((i * 47) % 100) / 100f * w
             val baseY = ((i * 89) % 100) / 100f * h
             val floatY = (phase + i * 0.05f) % 1f
             val y = baseY - floatY * h * 0.15f
-            val alpha = 0.15f + 0.25f * ((sin((phase + i * 0.1f) * 6.28f) + 1f) / 2f)
-            val size = (1.5f + (i % 3) * 0.5f).dp.toPx()
+            val alpha = (
+                0.15f + 0.25f *
+                    ((sin((phase + i * 0.1f) * 6.28f) + 1f) / 2f)
+                ) * brightness
+
+            val particleSize = (1.5f + (i % 3) * 0.5f).dp.toPx()
 
             drawCircle(
                 color = Color.White.copy(alpha = alpha),
-                radius = size,
+                radius = particleSize,
                 center = Offset(baseX, y)
             )
         }
 
-        // Floating Gold Particles
-        for (i in 0 until 20) {
-            val baseX = ((i * 113) % 100) / 100f * w
-            val baseY = ((i * 71) % 100) / 100f * h
-            val floatY = (phase + i * 0.08f) % 1f
-            val y = baseY - floatY * h * 0.12f
-            val alpha = 0.08f + 0.12f * ((sin((phase + i * 0.15f) * 6.28f) + 1f) / 2f)
-            val size = (1.0f + (i % 2) * 0.4f).dp.toPx()
+        val goldCount = when (motionMode) {
+            0 -> 20
+            1 -> 3
+            else -> 0
+        }
+
+        for (i in 0 until goldCount) {
+            val x = ((i * 113) % 100) / 100f * w
+            val yBase = ((i * 71) % 100) / 100f * h
+            val y = yBase - ((phase + i * 0.08f) % 1f) * h * 0.12f
+            val alpha = (
+                0.08f + 0.12f *
+                    ((sin((phase + i * 0.15f) * 6.28f) + 1f) / 2f)
+                ) * brightness
 
             drawCircle(
                 color = Color(0xFFFFD700).copy(alpha = alpha * 0.6f),
-                radius = size,
-                center = Offset(baseX, y)
+                radius = 1.3f.dp.toPx(),
+                center = Offset(x, y)
             )
         }
 
-        // Floating Rings
-        for (i in 0 until 12) {
-            val baseX = ((i * 157) % 100) / 100f * w
-            val baseY = ((i * 131) % 100) / 100f * h
-            val floatY = (phase + i * 0.06f) % 1f
-            val y = baseY - floatY * h * 0.10f
-            val alpha = 0.05f + 0.15f * ((sin((phase + i * 0.12f) * 6.28f) + 1f) / 2f)
-            val size = (3f + (i % 3) * 2f).dp.toPx()
+        val ringCount = when (motionMode) {
+            0 -> 12
+            1 -> 4
+            else -> 4
+        }
+
+        for (i in 0 until ringCount) {
+            val x = ((i * 157) % 100) / 100f * w
+            val yBase = ((i * 131) % 100) / 100f * h
+            val y = yBase - ((phase + i * 0.06f) % 1f) * h * 0.10f
+            val alpha = (
+                0.05f + 0.15f *
+                    ((sin((phase + i * 0.12f) * 6.28f) + 1f) / 2f)
+                ) * brightness
 
             drawCircle(
                 color = Color.White.copy(alpha = alpha),
-                radius = size,
-                center = Offset(baseX, y),
+                radius = (3f + (i % 3) * 2f).dp.toPx(),
+                center = Offset(x, y),
                 style = Stroke(width = 1.dp.toPx())
             )
         }
-        
-        // Floating Diamonds
-        for (i in 0 until 10) {
-            val baseX = ((i * 211) % 100) / 100f * w
-            val baseY = ((i * 173) % 100) / 100f * h
-            val floatY = (phase + i * 0.04f) % 1f
-            val y = baseY - floatY * h * 0.08f
-            val alpha = 0.05f + 0.10f * ((sin((phase + i * 0.2f) * 6.28f) + 1f) / 2f)
-            val size = 2.5f.dp.toPx()
-            
-            val path = Path().apply {
-                moveTo(baseX, y - size)
-                lineTo(baseX + size, y)
-                lineTo(baseX, y + size)
-                lineTo(baseX - size, y)
-                close()
-            }
-            drawPath(path = path, color = particleAccent.copy(alpha = alpha))
+
+        val diamondCount = when (motionMode) {
+            0 -> 10
+            1 -> 3
+            else -> 3
         }
 
-        // Shooting Stars (More and faster!)
-        for (i in 0 until 8) {
+        for (i in 0 until diamondCount) {
+            val x = ((i * 211) % 100) / 100f * w
+            val yBase = ((i * 173) % 100) / 100f * h
+            val y = yBase - ((phase + i * 0.04f) % 1f) * h * 0.08f
+            val alpha = (
+                0.05f + 0.10f *
+                    ((sin((phase + i * 0.2f) * 6.28f) + 1f) / 2f)
+                ) * brightness
+
+            val diamondSize = 2.5f.dp.toPx()
+            val path = Path().apply {
+                moveTo(x, y - diamondSize)
+                lineTo(x + diamondSize, y)
+                lineTo(x, y + diamondSize)
+                lineTo(x - diamondSize, y)
+                close()
+            }
+
+            drawPath(
+                path = path,
+                color = particleAccent.copy(alpha = alpha)
+            )
+        }
+
+        val shootingStarCount = if (motionMode == 0) 8 else 0
+
+        for (i in 0 until shootingStarCount) {
             val startX = ((i * 89) % 100) / 100f * w
             val startY = ((i * 37) % 30) / 100f * h
             val shootPhase = (phase * 3f + i * 0.35f) % 1f
-            val shootX = startX + shootPhase * w * 0.6f
-            val shootY = startY + shootPhase * h * 0.4f
-            val alpha = if (shootPhase < 0.3f) shootPhase / 0.3f else if (shootPhase > 0.7f) (1f - shootPhase) / 0.3f else 1f
-            
-            // Star head
-            drawCircle(
-                color = Color(0xFFFFFF).copy(alpha = alpha * 0.9f),
-                radius = 2.5f.dp.toPx(),
-                center = Offset(shootX, shootY)
-            )
-            
-            // Tail
+            val x = startX + shootPhase * w * 0.6f
+            val y = startY + shootPhase * h * 0.4f
+
+            val alpha = (
+                if (shootPhase < 0.3f) shootPhase / 0.3f
+                else if (shootPhase > 0.7f) (1f - shootPhase) / 0.3f
+                else 1f
+                ) * brightness
+
             val tailLength = 40f.dp.toPx()
-            val tailEndX = shootX - tailLength * 0.7f
-            val tailEndY = shootY - tailLength * 0.5f
-            
+            val tailX = x - tailLength * 0.7f
+            val tailY = y - tailLength * 0.5f
+
+            drawCircle(
+                color = Color.White.copy(alpha = alpha),
+                radius = 2.5f.dp.toPx(),
+                center = Offset(x, y)
+            )
+
             drawLine(
                 color = Color(0xFFFFD700).copy(alpha = alpha * 0.6f),
-                start = Offset(shootX, shootY),
-                end = Offset(tailEndX, tailEndY),
+                start = Offset(x, y),
+                end = Offset(tailX, tailY),
                 strokeWidth = 1.5f.dp.toPx()
             )
-            
-            // Fading tail
-            for (j in 1..3) {
-                val fadeAlpha = alpha * (1f - j / 4f) * 0.5f
-                val fadeX = tailEndX - j * 8f.dp.toPx()
-                val fadeY = tailEndY - j * 6f.dp.toPx()
-                drawCircle(
-                    color = Color(0xFFFFD700).copy(alpha = fadeAlpha),
-                    radius = (2f - j * 0.5f).dp.toPx(),
-                    center = Offset(fadeX, fadeY)
-                )
-            }
         }
     }
 }
 
 @Composable
 fun RedAura() {
-val theme by Store.equippedTheme.collectAsState(initial = null)
-val auraColor = when (theme) {
-"item_aurora_dream" -> Color(0xFF26C6DA)
-"item_math_matrix" -> Color(0xFF43A047)
-"item_spanish_fiesta" -> Color(0xFFFFA726)
-"theme_void_nexus" -> Color(0xFF9C6ADE)
-"theme_sakura_drift" -> Color(0xFFE68AB5)
-"theme_crimson_focus" -> Color(0xFFD9534F)
-else -> Color(0xFFFFD180)
-}
+    val theme by Store.equippedTheme.collectAsState(initial = null)
+    val brightness by VisualSettings.effectBrightness.collectAsState()
 
-Canvas(modifier = Modifier.fillMaxSize()) {
-drawCircle(
-brush = Brush.radialGradient(
-colors = listOf(
-auraColor.copy(alpha = 0.12f),
-auraColor.copy(alpha = 0.045f),
-Color.Transparent
-),
+    val auraColor = when (theme) {
+        "item_aurora_dream" -> Color(0xFF26C6DA)
+        "item_math_matrix" -> Color(0xFF43A047)
+        "item_spanish_fiesta" -> Color(0xFFFFA726)
+        "theme_void_nexus" -> Color(0xFF9C6ADE)
+        "theme_sakura_drift" -> Color(0xFFE68AB5)
+        "theme_crimson_focus" -> Color(0xFFD9534F)
+        else -> Color(0xFFFFD180)
+    }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    auraColor.copy(alpha = 0.12f * brightness),
+                    auraColor.copy(alpha = 0.045f * brightness),
+                    Color.Transparent
+                ),
                 center = Offset(size.width * 0.5f, size.height * 0.3f),
                 radius = size.width * 0.6f
             ),
@@ -222,14 +254,14 @@ Color.Transparent
 
 @Composable
 fun RedPatchesBackground() {
-val theme by Store.equippedTheme.collectAsState(initial = null)
-val effectBrightness by VisualSettings.effectBrightness.collectAsState()
+    val theme by Store.equippedTheme.collectAsState(initial = null)
+    val brightness by VisualSettings.effectBrightness.collectAsState()
     val isCrimson = theme == "theme_crimson_focus"
 
-    val c1 = if (isCrimson) Color(0xFFC41C3B) else Color(0xFFFFFFFF)
+    val c1 = if (isCrimson) Color(0xFFC41C3B) else Color.White
     val c2 = if (isCrimson) Color(0xFF8B0000) else Color(0xFF9A9A9A)
-    val a1 = (if (isCrimson) 0.15f else 0.05f) * effectBrightness
-val a2 = (if (isCrimson) 0.12f else 0.04f) * effectBrightness
+    val a1 = (if (isCrimson) 0.15f else 0.05f) * brightness
+    val a2 = (if (isCrimson) 0.12f else 0.04f) * brightness
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawCircle(
@@ -241,6 +273,7 @@ val a2 = (if (isCrimson) 0.12f else 0.04f) * effectBrightness
             center = Offset(size.width * 0.85f, size.height * 0.12f),
             radius = size.width * 0.55f
         )
+
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(c2.copy(alpha = a2), Color.Transparent),

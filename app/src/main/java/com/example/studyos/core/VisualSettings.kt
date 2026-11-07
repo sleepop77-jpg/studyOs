@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 object VisualSettings {
     private const val PREFS = "studyos_visual_settings"
 
-    val motionMode = MutableStateFlow(1)
+    val motionMode = MutableStateFlow(0)
     val timerRefreshSeconds = MutableStateFlow(5)
     val effectBrightness = MutableStateFlow(0.65f)
 
@@ -25,12 +25,12 @@ object VisualSettings {
             )
 
             preferences = prefs
-            motionMode.value = prefs.getInt("motion_mode", 1).coerceIn(0, 2)
+            motionMode.value = prefs.getInt("motion_mode", 0).coerceIn(0, 2)
             timerRefreshSeconds.value = prefs.getInt("timer_refresh", 5).let {
                 if (it == 1) 1 else 5
             }
             effectBrightness.value = prefs.getFloat("effect_brightness", 0.65f)
-                .coerceIn(0.25f, 1f)
+                .coerceIn(0f, 1f)
         }
     }
 
@@ -49,7 +49,7 @@ object VisualSettings {
     }
 
     fun updateEffectBrightness(value: Float) {
-        effectBrightness.value = value.coerceIn(0.25f, 1f)
+        effectBrightness.value = value.coerceIn(0f, 1f)
     }
 
     fun saveEffectBrightness(context: Context) {

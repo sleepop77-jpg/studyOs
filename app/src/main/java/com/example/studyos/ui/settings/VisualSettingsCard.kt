@@ -177,8 +177,8 @@ fun VisualSettingsCard() {
                 onValueChangeFinished = {
                     VisualSettings.saveEffectBrightness(context)
                 },
-                valueRange = 0.25f..1f,
-                steps = 14
+                valueRange = 0f..1f,
+steps = 19
             )
 
             Text(

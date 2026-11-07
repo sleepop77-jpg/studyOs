@@ -489,6 +489,26 @@ fun AnimatedMascotPreview(skinId: String, size: Dp = 56.dp) {
 
 if (skinId == AnimatedSkins.QUIET_ORB) {
 val radius = w * 0.30f
+
+val screenWidth = w * 0.46f
+val screenHeight = h * 0.09f
+val screenX = (w - screenWidth) / 2f
+val screenY = headCenter.y + radius * 0.72f
+
+drawRoundRect(
+color = Color(0xFF252A34),
+topLeft = Offset(screenX, screenY),
+size = Size(screenWidth, screenHeight),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+)
+
+drawRoundRect(
+color = Color(0xFFD5D8DC),
+topLeft = Offset(w * 0.32f, screenY + screenHeight),
+size = Size(w * 0.36f, h * 0.035f),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+)
+
 drawCircle(
 brush = Brush.radialGradient(
 listOf(Color.White, Color(0xFFEAEAEA)),

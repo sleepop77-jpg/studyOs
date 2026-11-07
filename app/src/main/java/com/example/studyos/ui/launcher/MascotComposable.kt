@@ -420,6 +420,128 @@ label = "storyPhase"
     }
 }
 
+private fun DrawScope.drawQuietOrbMascot(
+cx: Float,
+cy: Float,
+w: Float,
+h: Float,
+showArc: Boolean,
+progressArc: Float
+) {
+if (showArc) {
+val radius = w * 0.45f
+val arcRect = Rect(
+cx - radius,
+cy - radius - h * 0.05f,
+cx + radius,
+cy + radius - h * 0.05f
+)
+
+drawArc(
+color = Color.White.copy(alpha = 0.22f),
+startAngle = 160f,
+sweepAngle = 220f,
+useCenter = false,
+topLeft = arcRect.topLeft,
+size = arcRect.size,
+style = Stroke(4.dp.toPx(), cap = StrokeCap.Round)
+)
+
+if (progressArc > 0f) {
+drawArc(
+color = Color.White,
+startAngle = 160f,
+sweepAngle = 220f * progressArc,
+useCenter = false,
+topLeft = arcRect.topLeft,
+size = arcRect.size,
+style = Stroke(4.dp.toPx(), cap = StrokeCap.Round)
+)
+}
+}
+
+val deskY = cy + h * 0.20f
+val laptopWidth = w * 0.36f
+val laptopHeight = h * 0.19f
+val laptopLeft = cx - laptopWidth / 2f
+val screenTop = deskY - laptopHeight * 0.78f
+
+drawRoundRect(
+color = Color(0xFF3D3434),
+topLeft = Offset(cx - w * 0.38f, deskY),
+size = Size(w * 0.76f, h * 0.16f),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(10.dp.toPx())
+)
+
+drawRoundRect(
+color = Color(0xFF252A34),
+topLeft = Offset(laptopLeft, screenTop),
+size = Size(laptopWidth, laptopHeight * 0.82f),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(5.dp.toPx())
+)
+
+drawRoundRect(
+color = Color(0xFF0F172A),
+topLeft = Offset(
+laptopLeft + 2.5.dp.toPx(),
+screenTop + 2.5.dp.toPx()
+),
+size = Size(
+laptopWidth - 5.dp.toPx(),
+laptopHeight * 0.82f - 5.dp.toPx()
+),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx())
+)
+
+drawLine(
+color = Color(0xFF66BB6A),
+start = Offset(laptopLeft + 6.dp.toPx(), screenTop + 8.dp.toPx()),
+end = Offset(laptopLeft + laptopWidth * 0.55f, screenTop + 8.dp.toPx()),
+strokeWidth = 1.5.dp.toPx()
+)
+
+drawRoundRect(
+color = Color(0xFFD5D8DC),
+topLeft = Offset(cx - laptopWidth * 0.62f, screenTop + laptopHeight * 0.82f),
+size = Size(laptopWidth * 1.24f, h * 0.055f),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+)
+
+val head = Offset(cx, cy - h * 0.04f)
+val orbRadius = minOf(w, h) * 0.21f
+
+drawCircle(
+color = Color.Black.copy(alpha = 0.12f),
+radius = orbRadius + 2.dp.toPx(),
+center = Offset(head.x, head.y + 3.dp.toPx())
+)
+
+drawCircle(
+color = Color(0xFFF8F8F8),
+radius = orbRadius,
+center = head
+)
+
+drawCircle(
+color = Color(0xFFE2E2E2),
+radius = orbRadius,
+center = head,
+style = Stroke(1.dp.toPx())
+)
+
+drawCircle(
+color = Color(0xFF202020),
+radius = orbRadius * 0.075f,
+center = Offset(head.x - orbRadius * 0.34f, head.y - orbRadius * 0.04f)
+)
+
+drawCircle(
+color = Color(0xFF202020),
+radius = orbRadius * 0.075f,
+center = Offset(head.x + orbRadius * 0.34f, head.y - orbRadius * 0.04f)
+)
+}
+
 private fun DrawScope.drawPremiumAmbience(
     state: MascotState,
     cx: Float,
