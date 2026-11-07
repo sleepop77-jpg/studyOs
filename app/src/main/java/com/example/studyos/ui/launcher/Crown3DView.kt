@@ -567,8 +567,8 @@ private class Crown3DRenderer : GLSurfaceView.Renderer {
             GLES20.glGetUniformLocation(program, "uFillDirection")
 
         parts = buildCrownModel()
-auraHazePart = buildAuraSphere(CrownMaterials.AURA_HAZE)
-auraCorePart = buildAuraSphere(CrownMaterials.AURA_CORE)
+auraHazePart = buildAuraSphere(auraHazeMaterial)
+auraCorePart = buildAuraSphere(auraCoreMaterial)
 
 startTime = System.nanoTime()
     }
