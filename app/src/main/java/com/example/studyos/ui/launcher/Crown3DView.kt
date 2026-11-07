@@ -737,14 +737,106 @@ private class Crown3DRenderer : GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(normalHandle)
     }
 
-    private fun drawPart(part: CrownPart) {
+    private fun buildAuraSphere(material: CrownMaterial): CrownPart? {
+val mesh = CrownMeshBuilder(material)
 
-        GLES20.glUniform4fv(
-            colorHandle,
-            1,
-            part.material.color,
-            0
-        )
+addSphere(
+mesh = mesh,
+center = V3(0f, 0f, 0f),
+radius = 1f,
+segments = 20,
+rings = 14
+)
+
+return mesh.build()
+}
+
+private fun drawAuraPart(
+part: CrownPart,
+parentMatrix: FloatArray,
+x: Float,
+y: Float,
+z: Float,
+scale: Float,
+alphaMultiplier: Float
+) {
+System.arraycopy(
+parentMatrix,
+0,
+auraModelMatrix,
+0,
+16
+)
+
+Matrix.translateM(
+auraModelMatrix,
+0,
+x,
+y,
+z
+)
+
+Matrix.scaleM(
+auraModelMatrix,
+0,
+scale,
+scale,
+scale
+)
+
+Matrix.multiplyMM(
+auraModelViewMatrix,
+0,
+viewMatrix,
+0,
+auraModelMatrix,
+0
+)
+
+Matrix.multiplyMM(
+auraMvpMatrix,
+0,
+projectionMatrix,
+0,
+auraModelViewMatrix,
+0
+)
+
+GLES20.glUniformMatrix4fv(
+mvpHandle,
+1,
+false,
+auraMvpMatrix,
+0
+)
+
+GLES20.glUniformMatrix4fv(
+modelViewHandle,
+1,
+false,
+auraModelViewMatrix,
+0
+)
+
+drawPart(
+part = part,
+alphaMultiplier = alphaMultiplier
+)
+}
+
+private fun drawPart(
+part: CrownPart,
+alphaMultiplier: Float = 1f
+) {
+val materialColor = part.material.color
+
+GLES20.glUniform4f(
+colorHandle,
+materialColor[0],
+materialColor[1],
+materialColor[2],
+materialColor[3] * alphaMultiplier.coerceIn(0f, 1f)
+)
 
         GLES20.glUniform1f(
             specularHandle,

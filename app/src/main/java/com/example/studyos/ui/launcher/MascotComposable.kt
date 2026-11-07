@@ -451,10 +451,10 @@ if (equippedSkin == AnimatedSkins.ASTRAL) {
 Crown3DView(
 modifier = Modifier
 .align(Alignment.TopCenter)
-.offset(y = (-3).dp)
+.offset(y = -size * 0.06f)
 .size(
-width = size * 0.72f,
-height = size * 0.43f
+width = size * 0.95f,
+height = size * 0.40f
 ),
 motionMode = motionMode,
 effectBrightness = effectBrightness
