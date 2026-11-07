@@ -15,6 +15,7 @@ object LockdownManager {
     private const val PREFS = "studyos_lockdown"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_BLOCKED = "blocked_packages"
+    private const val KEY_BLOCK_ORDER = "blocked_package_order"
     private const val KEY_LIMITS = "app_limits"
     private const val KEY_USAGE = "app_usage_today"
     private const val KEY_USAGE_DATE = "usage_date"
@@ -37,7 +38,8 @@ object LockdownManager {
         usageFlow.value = readUsage(context)
     }
 
-    fun isEnabled(context: Context): Boolean = prefs(context).getBoolean(KEY_ENABLED, false)
+    fun isEnabled(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(KEY_ENABLED, enabled).apply()
@@ -46,8 +48,46 @@ object LockdownManager {
     fun blockedPackages(context: Context): Set<String> =
         prefs(context).getStringSet(KEY_BLOCKED, null) ?: defaultBlocked()
 
-    fun setBlockedPackages(context: Context, packages: Set<String>) {
-        prefs(context).edit().putStringSet(KEY_BLOCKED, packages).apply()
+    fun blockedPackageOrder(context: Context): List<String> {
+        val blocked = blockedPackages(context)
+        val saved = prefs(context).getString(KEY_BLOCK_ORDER, null)
+
+        val ordered = if (saved.isNullOrBlank()) {
+            defaultBlocked().filter { it in blocked }
+        } else {
+            saved.split('\n').filter { it in blocked }
+        }
+
+        return ordered + blocked
+            .filterNot { it in ordered }
+            .sorted()
+    }
+
+    fun setBlockedPackages(
+        context: Context,
+        packages: Set<String>,
+        newlyBlocked: String? = null
+    ) {
+        val previousOrder = blockedPackageOrder(context)
+        val ordered = mutableListOf<String>()
+
+        if (newlyBlocked != null && newlyBlocked in packages) {
+            ordered.add(newlyBlocked)
+        }
+
+        previousOrder
+            .filter { it in packages && it != newlyBlocked }
+            .forEach { ordered.add(it) }
+
+        packages
+            .filterNot { it in ordered }
+            .sorted()
+            .forEach { ordered.add(it) }
+
+        prefs(context).edit()
+            .putStringSet(KEY_BLOCKED, packages.toSet())
+            .putString(KEY_BLOCK_ORDER, ordered.joinToString("\n"))
+            .apply()
     }
 
     fun appLimits(context: Context): Map<String, Int> {
@@ -58,12 +98,25 @@ object LockdownManager {
     fun setAppLimit(context: Context, pkg: String, minutes: Int) {
         ensureLoaded(context)
         val map = limitsFlow.value.toMutableMap()
-        if (minutes <= 0) map.remove(pkg) else map[pkg] = minutes
+
+        if (minutes <= 0) {
+            map.remove(pkg)
+        } else {
+            map[pkg] = minutes
+        }
+
         prefs(context).edit()
-            .putStringSet(KEY_LIMITS, map.map { "${it.key}|${it.value}" }.toSet())
+            .putStringSet(
+                KEY_LIMITS,
+                map.map { "${it.key}|${it.value}" }.toSet()
+            )
             .apply()
+
         limitsFlow.value = map
-        if (minutes <= 0) clearLimitBust(context, pkg)
+
+        if (minutes <= 0) {
+            clearLimitBust(context, pkg)
+        }
     }
 
     fun usageToday(context: Context): Map<String, Long> {
@@ -73,33 +126,57 @@ object LockdownManager {
 
     fun addUsage(context: Context, pkg: String, seconds: Long) {
         if (seconds <= 0) return
+
         ensureLoaded(context)
         rollOverDay(context)
+
         val map = usageFlow.value.toMutableMap()
         map[pkg] = (map[pkg] ?: 0L) + seconds
+
         prefs(context).edit()
-            .putStringSet(KEY_USAGE, map.map { "${it.key}|${it.value}" }.toSet())
+            .putStringSet(
+                KEY_USAGE,
+                map.map { "${it.key}|${it.value}" }.toSet()
+            )
             .apply()
+
         usageFlow.value = map
     }
 
     fun isLimitBusted(context: Context, pkg: String): Boolean =
-        prefs(context).getStringSet(KEY_LIMIT_BUSTED, null)?.contains(pkg) == true
+        prefs(context)
+            .getStringSet(KEY_LIMIT_BUSTED, null)
+            ?.contains(pkg) == true
 
     fun markLimitBusted(context: Context, pkg: String) {
-        val set = (prefs(context).getStringSet(KEY_LIMIT_BUSTED, null) ?: emptySet()).toMutableSet()
+        val set = (
+            prefs(context).getStringSet(KEY_LIMIT_BUSTED, null)
+                ?: emptySet()
+            ).toMutableSet()
+
         set.add(pkg)
-        prefs(context).edit().putStringSet(KEY_LIMIT_BUSTED, set).apply()
+
+        prefs(context).edit()
+            .putStringSet(KEY_LIMIT_BUSTED, set)
+            .apply()
     }
 
     fun clearLimitBust(context: Context, pkg: String) {
-        val set = (prefs(context).getStringSet(KEY_LIMIT_BUSTED, null) ?: emptySet()).toMutableSet()
+        val set = (
+            prefs(context).getStringSet(KEY_LIMIT_BUSTED, null)
+                ?: emptySet()
+            ).toMutableSet()
+
         set.remove(pkg)
-        prefs(context).edit().putStringSet(KEY_LIMIT_BUSTED, set).apply()
+
+        prefs(context).edit()
+            .putStringSet(KEY_LIMIT_BUSTED, set)
+            .apply()
     }
 
     fun grantGrace(pkg: String, minutes: Int) {
-        graceUntil[pkg] = System.currentTimeMillis() + minutes * 60_000L
+        graceUntil[pkg] =
+            System.currentTimeMillis() + minutes * 60_000L
     }
 
     fun isGraceActive(pkg: String): Boolean =
@@ -113,49 +190,80 @@ object LockdownManager {
     }
 
     fun rollOverDay(context: Context) {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val today = SimpleDateFormat(
+            "yyyy-MM-dd",
+            Locale.US
+        ).format(Date())
+
         val p = prefs(context)
+
         if (p.getString(KEY_USAGE_DATE, null) != today) {
             p.edit()
                 .putString(KEY_USAGE_DATE, today)
                 .remove(KEY_USAGE)
                 .remove(KEY_LIMIT_BUSTED)
                 .apply()
+
             usageFlow.value = emptyMap()
         }
     }
 
     private fun readLimits(context: Context): Map<String, Int> =
-        prefs(context).getStringSet(KEY_LIMITS, null)?.mapNotNull {
-            val parts = it.split("|")
-            if (parts.size < 2) return@mapNotNull null
-            val m = parts[1].toIntOrNull() ?: return@mapNotNull null
-            parts[0] to m
-        }?.toMap() ?: emptyMap()
+        prefs(context).getStringSet(KEY_LIMITS, null)
+            ?.mapNotNull {
+                val parts = it.split("|")
+                if (parts.size < 2) return@mapNotNull null
+
+                val minutes = parts[1].toIntOrNull()
+                    ?: return@mapNotNull null
+
+                parts[0] to minutes
+            }
+            ?.toMap()
+            ?: emptyMap()
 
     private fun readUsage(context: Context): Map<String, Long> =
-        prefs(context).getStringSet(KEY_USAGE, null)?.mapNotNull {
-            val parts = it.split("|")
-            if (parts.size < 2) return@mapNotNull null
-            val s = parts[1].toLongOrNull() ?: return@mapNotNull null
-            parts[0] to s
-        }?.toMap() ?: emptyMap()
+        prefs(context).getStringSet(KEY_USAGE, null)
+            ?.mapNotNull {
+                val parts = it.split("|")
+                if (parts.size < 2) return@mapNotNull null
+
+                val seconds = parts[1].toLongOrNull()
+                    ?: return@mapNotNull null
+
+                parts[0] to seconds
+            }
+            ?.toMap()
+            ?: emptyMap()
 
     @Suppress("DEPRECATION")
     fun hasUsageAccess(context: Context): Boolean {
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val appOps = context.getSystemService(
+            Context.APP_OPS_SERVICE
+        ) as AppOpsManager
+
         val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+            appOps.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                context.packageName
+            )
         } else {
-            appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+            appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                context.packageName
+            )
         }
+
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
     fun hasOverlayPermission(context: Context): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context)
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            Settings.canDrawOverlays(context)
 
-    private fun defaultBlocked(): Set<String> = setOf(
+    private fun defaultBlocked(): Set<String> = linkedSetOf(
         "com.instagram.android",
         "com.zhiliaoapp.musically",
         "com.google.android.youtube",
