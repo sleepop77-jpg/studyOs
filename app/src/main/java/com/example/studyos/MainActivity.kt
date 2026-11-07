@@ -109,7 +109,8 @@ private fun StudyOSRoot() {
 
 @Composable
 private fun StudyOSNav() {
-    val context = LocalContext.current
+val context = LocalContext.current
+val motionMode by VisualSettings.motionMode.collectAsState()
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }

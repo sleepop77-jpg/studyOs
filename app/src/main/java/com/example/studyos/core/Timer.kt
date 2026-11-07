@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 
 object Timer {
     val seconds = MutableStateFlow(25 * 60)
+    val displaySeconds = MutableStateFlow(25 * 60)
     val total = MutableStateFlow(25 * 60)
     val running = MutableStateFlow(false)
     val strict = MutableStateFlow(false)
@@ -28,6 +29,13 @@ object Timer {
                 if (running.value) {
                     if (seconds.value > 1) {
                         seconds.value -= 1
+
+                        val interval = VisualSettings.timerRefreshSeconds.value
+                            .coerceIn(1, 5)
+
+                        if (seconds.value % interval == 0) {
+                            displaySeconds.value = seconds.value
+                        }
                     } else {
                         running.value = false
                         Economy.studying.value = false
@@ -37,13 +45,9 @@ object Timer {
                         StudyMarket.onUserSessionCompleted(mins, strict.value)
 
                         seconds.value = total.value
-displaySeconds.value = seconds.value
-}
-
-fun refreshDisplay() {
-displaySeconds.value = seconds.value
-}
-}
+                        displaySeconds.value = total.value
+                    }
+                }
             }
         }
     }
@@ -62,6 +66,7 @@ displaySeconds.value = seconds.value
         val clamped = m.coerceIn(1, 180)
         total.value = clamped * 60
         seconds.value = clamped * 60
+        displaySeconds.value = seconds.value
         running.value = false
         Economy.studying.value = false
     }
@@ -72,7 +77,10 @@ displaySeconds.value = seconds.value
         running.value = !running.value
         Economy.studying.value = running.value
 
-        if (!running.value) Economy.continuousSecs.value = 0
+        if (!running.value) {
+            Economy.continuousSecs.value = 0
+            displaySeconds.value = seconds.value
+        }
     }
 
     fun reset() {
@@ -81,5 +89,10 @@ displaySeconds.value = seconds.value
         running.value = false
         Economy.studying.value = false
         seconds.value = total.value
+        displaySeconds.value = total.value
+    }
+
+    fun refreshDisplay() {
+        displaySeconds.value = seconds.value
     }
 }

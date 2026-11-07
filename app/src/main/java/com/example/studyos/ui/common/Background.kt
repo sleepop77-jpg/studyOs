@@ -221,7 +221,8 @@ Color.Transparent
 
 @Composable
 fun RedPatchesBackground() {
-    val theme by Store.equippedTheme.collectAsState(initial = null)
+val theme by Store.equippedTheme.collectAsState(initial = null)
+val effectBrightness by VisualSettings.effectBrightness.collectAsState()
     val isCrimson = theme == "theme_crimson_focus"
 
     val c1 = if (isCrimson) Color(0xFFC41C3B) else Color(0xFFFFFFFF)

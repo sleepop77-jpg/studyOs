@@ -257,11 +257,14 @@ fun MascotCanvas(
     )
 
     val glow by t.animateFloat(
-        0.4f,
-        0.95f,
-        infiniteRepeatable(tween(400, easing = LinearEasing), RepeatMode.Reverse),
-        label = "glow"
-    )
+if (motionMode == 2) 0.65f else if (motionMode == 1) 0.58f else 0.4f,
+if (motionMode == 2) 0.65f else if (motionMode == 1) 0.72f else 0.95f,
+infiniteRepeatable(
+tween(if (motionMode == 1) 5000 else 400, easing = LinearEasing),
+RepeatMode.Reverse
+),
+label = "glow"
+)
 
     val storyPhase by t.animateFloat(
 0f,
