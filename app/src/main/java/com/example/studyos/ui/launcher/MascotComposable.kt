@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studyos.core.Store
+import com.example.studyos.core.VisualSettings
 import com.example.studyos.ui.theme.FameGold
 import com.example.studyos.ui.theme.PrimaryCoral
 import com.example.studyos.ui.theme.PrimaryCoralDark
