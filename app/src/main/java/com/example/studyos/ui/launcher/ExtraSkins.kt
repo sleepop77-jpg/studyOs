@@ -37,8 +37,20 @@ object AnimatedSkins {
     const val NEON_RING = "item_free_neon_ring"
     const val ORBIT = "item_free_orbit"
 
-    const val COSMIC = "item_cosmic_scholar"
-val MASCOT_SET = setOf(HALO, NINJA, PARTY, NEON_RING, ORBIT, COSMIC)
+    const val CYBERPUNK = "item_cyberpunk"
+const val NIGHT_OWL = "item_night_owl_skin"
+const val GOLDEN_DESK = "item_golden_desk"
+const val ASTRAL = "item_astral_crown"
+const val DRAGON = "item_dragon_aura"
+const val KATANA = "item_neon_katana"
+const val COSMIC = "item_cosmic_scholar"
+
+val MASCOT_SET = setOf(
+HALO, NINJA, PARTY,
+CYBERPUNK, NIGHT_OWL, GOLDEN_DESK,
+ASTRAL, DRAGON, KATANA,
+NEON_RING, ORBIT, COSMIC
+)
 }
 
 fun DrawScope.drawExtraSkins(skin: String?, cx: Float, cy: Float, w: Float, h: Float, headCenter: Offset, phase: Float, state: MascotState = MascotState.IDLE) {
@@ -49,6 +61,12 @@ AnimatedSkins.PARTY -> drawPartyMode(cx, cy, w, h, headCenter, phase)
 AnimatedSkins.NEON_RING -> drawNeonRing(headCenter, w, h, phase)
 AnimatedSkins.ORBIT -> drawOrbit(headCenter, w, h, phase)
 AnimatedSkins.COSMIC -> drawCosmicScholar(cx, cy, w, h, headCenter, phase, state)
+AnimatedSkins.CYBERPUNK -> drawCyberpunkVisor(headCenter, w, h)
+AnimatedSkins.NIGHT_OWL -> drawNightOwlCap(headCenter, w, h)
+AnimatedSkins.GOLDEN_DESK -> drawGoldenDesk(cx, cy, w, h)
+AnimatedSkins.ASTRAL -> drawAstralCrown(headCenter, w, h, phase)
+AnimatedSkins.DRAGON -> drawDragonAura(headCenter, w, h, phase)
+AnimatedSkins.KATANA -> drawNeonKatana(cx, cy, w, h)
 }
 }
 
@@ -349,6 +367,115 @@ private fun DrawScope.drawPartyMode(cx: Float, cy: Float, w: Float, h: Float, he
     }
 }
 
+private fun DrawScope.drawCyberpunkVisor(head: Offset, w: Float, h: Float) {
+val visorWidth = w * 0.42f
+val visorHeight = h * 0.10f
+val left = head.x - visorWidth / 2f
+val top = head.y - h * 0.065f
+val rectSize = Size(visorWidth, visorHeight)
+
+drawRoundRect(
+color = Color(0xFF073642),
+topLeft = Offset(left, top),
+size = rectSize,
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+)
+drawRoundRect(
+color = Color(0xFF00E5FF),
+topLeft = Offset(left, top),
+size = rectSize,
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
+style = Stroke(width = 1.5.dp.toPx())
+)
+drawLine(Color(0xFFB2EBF2), Offset(left + visorWidth * 0.2f, top + visorHeight * 0.3f), Offset(left + visorWidth * 0.43f, top + visorHeight * 0.3f), 1.dp.toPx())
+}
+
+private fun DrawScope.drawNightOwlCap(head: Offset, w: Float, h: Float) {
+val cap = Path().apply {
+moveTo(head.x - w * 0.19f, head.y - h * 0.13f)
+quadraticTo(head.x - w * 0.12f, head.y - h * 0.34f, head.x + w * 0.10f, head.y - h * 0.29f)
+quadraticTo(head.x + w * 0.22f, head.y - h * 0.25f, head.x + w * 0.21f, head.y - h * 0.12f)
+lineTo(head.x - w * 0.19f, head.y - h * 0.13f)
+close()
+}
+drawPath(cap, Color(0xFF303F78))
+drawLine(Color(0xFF7986CB), Offset(head.x - w * 0.18f, head.y - h * 0.12f), Offset(head.x + w * 0.21f, head.y - h * 0.12f), 2.dp.toPx())
+drawCircle(Color(0xFFFFE082), h * 0.035f, Offset(head.x + w * 0.12f, head.y - h * 0.27f))
+}
+
+private fun DrawScope.drawGoldenDesk(cx: Float, cy: Float, w: Float, h: Float) {
+val y = cy + h * 0.20f
+drawRoundRect(
+color = Color(0xFFFFD700),
+topLeft = Offset(cx - w * 0.38f, y),
+size = Size(w * 0.76f, 3.dp.toPx()),
+cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+)
+}
+
+private fun DrawScope.drawAstralCrown(head: Offset, w: Float, h: Float, phase: Float) {
+val crownWidth = w * 0.40f
+val crownHeight = h * 0.15f
+val left = head.x - crownWidth / 2f
+val right = head.x + crownWidth / 2f
+val baseY = head.y - h * 0.22f
+val topY = baseY - crownHeight
+
+val crown = Path().apply {
+moveTo(left, baseY)
+lineTo(left, baseY - crownHeight * 0.55f)
+lineTo(left + crownWidth * 0.23f, baseY - crownHeight * 0.24f)
+lineTo(head.x, topY)
+lineTo(right - crownWidth * 0.23f, baseY - crownHeight * 0.24f)
+lineTo(right, baseY - crownHeight * 0.55f)
+lineTo(right, baseY)
+close()
+}
+
+drawPath(crown, brush = Brush.linearGradient(listOf(Color(0xFF8055C7), Color(0xFFFFD700)), start = Offset(head.x, topY), end = Offset(head.x, baseY)))
+drawPath(crown, color = Color(0xFFFFE082), style = Stroke(width = 1.2.dp.toPx()))
+
+for (i in 0 until 3) {
+val angle = phase * 2f * Math.PI.toFloat() + i * 2.1f
+val x = head.x + cos(angle) * w * 0.27f
+val y = topY - h * 0.035f + sin(angle) * h * 0.035f
+drawCircle(Color(0xFFFFF9C4), 1.8.dp.toPx(), Offset(x, y))
+}
+}
+
+private fun DrawScope.drawDragonAura(head: Offset, w: Float, h: Float, phase: Float) {
+val pulse = 0.65f + 0.25f * sin(phase * 2f * Math.PI.toFloat())
+
+for (side in listOf(-1f, 1f)) {
+val flame = Path().apply {
+moveTo(head.x + side * w * 0.31f, head.y + h * 0.18f)
+quadraticTo(head.x + side * w * 0.48f, head.y - h * 0.02f, head.x + side * w * 0.28f, head.y - h * 0.24f)
+quadraticTo(head.x + side * w * 0.43f, head.y - h * 0.13f, head.x + side * w * 0.36f, head.y + h * 0.12f)
+}
+drawPath(flame, Color(0xFFFF5722).copy(alpha = pulse), style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
+drawPath(flame, Color(0xFFFFC107).copy(alpha = pulse * 0.75f), style = Stroke(width = 1.2.dp.toPx(), cap = StrokeCap.Round))
+}
+
+for (i in 0 until 8) {
+val angle = phase * 2f * Math.PI.toFloat() + i * (Math.PI.toFloat() / 4f)
+val radiusX = w * 0.36f
+val radiusY = h * 0.27f
+val x = head.x + cos(angle) * radiusX
+val y = head.y + sin(angle) * radiusY
+drawCircle(Color(0xFFFF6D00).copy(alpha = 0.45f + pulse * 0.4f), 2.dp.toPx(), Offset(x, y))
+}
+}
+
+private fun DrawScope.drawNeonKatana(cx: Float, cy: Float, w: Float, h: Float) {
+val handle = Offset(cx + w * 0.30f, cy + h * 0.28f)
+val blade = Offset(cx + w * 0.41f, cy - h * 0.17f)
+
+drawLine(Color(0xFF00E5FF).copy(alpha = 0.25f), handle, blade, 5.dp.toPx(), cap = StrokeCap.Round)
+drawLine(Color(0xFFB2EBF2), handle, blade, 1.8.dp.toPx(), cap = StrokeCap.Round)
+drawLine(Color(0xFF263238), Offset(handle.x - 3.dp.toPx(), handle.y + 2.dp.toPx()), Offset(handle.x + 3.dp.toPx(), handle.y - 2.dp.toPx()), 5.dp.toPx(), cap = StrokeCap.Round)
+drawLine(Color(0xFFFFD54F), Offset(handle.x - 4.dp.toPx(), handle.y - 1.dp.toPx()), Offset(handle.x + 4.dp.toPx(), handle.y + 1.dp.toPx()), 1.2.dp.toPx())
+}
+
 @Composable
 fun AnimatedMascotPreview(skinId: String, size: Dp = 56.dp) {
     val transition = rememberInfiniteTransition(label = "skin_preview")
@@ -375,7 +502,9 @@ fun AnimatedThemePreview(themeId: String, size: Dp = 56.dp) {
             AnimatedSkins.AURORA -> listOf(lerp(Color(0xFF0B1026), Color(0xFF123B4A), shift), lerp(Color(0xFF1E6E5A), Color(0xFF3BA98B), shift), Color(0xFF0B1026))
             "item_math_matrix" -> listOf(Color(0xFF003000), Color(0xFF001500))
             "item_spanish_fiesta" -> listOf(Color(0xFFF5A623), Color(0xFFD9534F), Color(0xFF9C27B0))
-            "theme_crimson_focus" -> listOf(lerp(Color(0xFF1D0505), Color(0xFFC41C3B), shift), Color(0xFF8B0000))
+            "theme_void_nexus" -> listOf(lerp(Color(0xFF120725), Color(0xFF35145C), shift), Color(0xFF05030B))
+"theme_sakura_drift" -> listOf(lerp(Color(0xFF18213B), Color(0xFF69334F), shift), Color(0xFF090A18))
+"theme_crimson_focus" -> listOf(lerp(Color(0xFF1D0505), Color(0xFFC41C3B), shift), Color(0xFF8B0000))
             else -> listOf(Color(0xFF000000), Color(0xFF0A0A0A))
         }
             drawRect(brush = Brush.verticalGradient(colors), size = this.size)

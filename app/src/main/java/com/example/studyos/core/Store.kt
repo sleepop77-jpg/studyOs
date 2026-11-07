@@ -30,7 +30,7 @@ object Store {
         Item(id = "theme_sakura_drift", name = "Sakura Drift", description = "Midnight cherry blossoms with falling petals.", type = "Theme", cost = 450),
         Item(id = "theme_crimson_focus", name = "Crimson Focus", description = "Classic black & red focus theme.", type = "Theme", cost = 200),
         Item(id = "item_free_neon_ring", name = "Neon Ring (FREE)", description = "Free animated neon ring around the mascot.", type = "Mascot", cost = 0),
-        Item(id =  "item_free_orbit ", name =  "Golden Orbit (FREE) ", description =  "Free animated golden orbit around the mascot. ", type =  "Mascot ", cost = 0),
+        Item(id = "item_free_orbit", name = "Golden Orbit (FREE)", description = "Free animated golden orbit around the mascot.", type = "Mascot", cost = 0),
 Item(id = "item_big_bull", name = "The Big Bull", description = "The legendary golden bull of Dalal Street. Horns of fortune, nose ring of commitment.", type = "Mascot", cost = 1500),
 Item(id = "item_cosmic_scholar", name = "Cosmic Scholar Aura", description = "A rotating galaxy with orbiting planets, pulsing nebulae, and shooting stars. Intensifies during focus sessions.", type = "Mascot", cost = 800)
     )
@@ -44,22 +44,28 @@ Item(id = "item_cosmic_scholar", name = "Cosmic Scholar Aura", description = "A 
     fun init(context: Context) {
         if (::prefs.isInitialized) return
         prefs = context.applicationContext.getSharedPreferences("studyos_store", Context.MODE_PRIVATE)
-        unlocked.value = prefs.getStringSet("unlocked", emptySet()) ?: emptySet()
-        equippedMascot.value = prefs.getString("mascot", null)
-        equippedTheme.value = prefs.getString("theme", null)
+        unlocked.value = (prefs.getStringSet("unlocked", emptySet()) ?: emptySet())
+.map { it.trim() }
+.filter { it.isNotEmpty() }
+.toSet()
+equippedMascot.value = prefs.getString("mascot", null)?.trim()?.takeIf { it.isNotEmpty() }
+equippedTheme.value = prefs.getString("theme", null)?.trim()?.takeIf { it.isNotEmpty() }
+save()
     }
 
     fun buy(id: String): Boolean {
-        val item = ITEMS.firstOrNull { it.id == id } ?: return false
-        if (unlocked.value.contains(id)) return true
+        val normalizedId = id.trim()
+val item = ITEMS.firstOrNull { it.id == normalizedId } ?: return false
+if (unlocked.value.contains(item.id)) return true
         if (!Economy.spend(item.cost)) return false
-        unlocked.value = unlocked.value + id
+        unlocked.value = unlocked.value + item.id
         save()
         return true
     }
 
     fun equip(id: String) {
-        val item = ITEMS.firstOrNull { it.id == id } ?: return
+        val normalizedId = id.trim()
+val item = ITEMS.firstOrNull { it.id == normalizedId } ?: return
         if (!unlocked.value.contains(id)) return
         when (item.type) {
             "Mascot" -> equippedMascot.value = id

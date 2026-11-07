@@ -35,9 +35,15 @@ fun homeBrush(): Brush {
         "item_spanish_fiesta" -> Brush.verticalGradient(
             listOf(Color(0xFF0B0303), Color(0xFF1D0505), Color(0xFF0B0303))
         )
-        "theme_crimson_focus" -> Brush.verticalGradient(
-            listOf(Color(0xFF000000), Color(0xFF140505), Color(0xFF1D0505))
-        )
+        "theme_void_nexus" -> Brush.verticalGradient(
+listOf(Color(0xFF05030B), Color(0xFF17102D), Color(0xFF030208))
+)
+"theme_sakura_drift" -> Brush.verticalGradient(
+listOf(Color(0xFF080B18), Color(0xFF241629), Color(0xFF080B18))
+)
+"theme_crimson_focus" -> Brush.verticalGradient(
+listOf(Color(0xFF000000), Color(0xFF140505), Color(0xFF1D0505))
+)
         else -> Brush.verticalGradient(
             listOf(Color(0xFF000000), Color(0xFF0A0A0A), Color(0xFF000000))
         )
@@ -46,7 +52,18 @@ fun homeBrush(): Brush {
 
 @Composable
 fun AnimatedBackground() {
-    val transition = rememberInfiniteTransition(label = "bg_particles")
+val theme by Store.equippedTheme.collectAsState(initial = null)
+val particleAccent = when (theme) {
+"item_aurora_dream" -> Color(0xFF40C4FF)
+"item_math_matrix" -> Color(0xFF00E676)
+"item_spanish_fiesta" -> Color(0xFFFFA726)
+"theme_void_nexus" -> Color(0xFFB388FF)
+"theme_sakura_drift" -> Color(0xFFFF80AB)
+"theme_crimson_focus" -> Color(0xFFE53935)
+else -> Color(0xFFFFD180)
+}
+
+val transition = rememberInfiniteTransition(label = "bg_particles")
     val phase by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -126,7 +143,7 @@ fun AnimatedBackground() {
                 lineTo(baseX - size, y)
                 close()
             }
-            drawPath(path = path, color = Color(0xFFE53935).copy(alpha = alpha))
+            drawPath(path = path, color = particleAccent.copy(alpha = alpha))
         }
 
         // Shooting Stars (More and faster!)
@@ -174,14 +191,25 @@ fun AnimatedBackground() {
 
 @Composable
 fun RedAura() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    Color(0xFFD9534F).copy(alpha = 0.18f),
-                    Color(0xFFD9534F).copy(alpha = 0.08f),
-                    Color.Transparent
-                ),
+val theme by Store.equippedTheme.collectAsState(initial = null)
+val auraColor = when (theme) {
+"item_aurora_dream" -> Color(0xFF26C6DA)
+"item_math_matrix" -> Color(0xFF43A047)
+"item_spanish_fiesta" -> Color(0xFFFFA726)
+"theme_void_nexus" -> Color(0xFF9C6ADE)
+"theme_sakura_drift" -> Color(0xFFE68AB5)
+"theme_crimson_focus" -> Color(0xFFD9534F)
+else -> Color(0xFFFFD180)
+}
+
+Canvas(modifier = Modifier.fillMaxSize()) {
+drawCircle(
+brush = Brush.radialGradient(
+colors = listOf(
+auraColor.copy(alpha = 0.12f),
+auraColor.copy(alpha = 0.045f),
+Color.Transparent
+),
                 center = Offset(size.width * 0.5f, size.height * 0.3f),
                 radius = size.width * 0.6f
             ),
