@@ -158,10 +158,61 @@ private data class CrownMaterial(
 )
 
 private data class CrownPart(
-    val material: CrownMaterial,
-    val vertices: FloatBuffer,
-    val vertexCount: Int
+val material: CrownMaterial,
+val vertices: FloatBuffer,
+val vertexCount: Int
 )
+
+private data class CrownAuraOrb(
+val x: Float,
+val y: Float,
+val z: Float,
+val phase: Float,
+val baseScale: Float
+)
+
+private val crownAuraOrbs: List<CrownAuraOrb> = listOf(
+CrownAuraOrb(-0.76f, 0.14f, 0.42f, 0.15f, 0.085f),
+CrownAuraOrb(-0.62f, 0.48f, 0.68f, 1.20f, 0.075f),
+CrownAuraOrb(-0.28f, 0.66f, 0.24f, 2.10f, 0.070f),
+CrownAuraOrb(0.28f, 0.66f, 0.24f, 3.20f, 0.070f),
+CrownAuraOrb(0.62f, 0.48f, 0.68f, 4.30f, 0.075f),
+CrownAuraOrb(0.76f, 0.14f, 0.42f, 5.40f, 0.085f)
+)
+
+private val crownAuraHazeMaterial = CrownMaterial(
+floatArrayOf(0.58f, 0.20f, 1.0f, 0.24f),
+0.45f,
+28f,
+1.25f
+)
+
+private val crownAuraCoreMaterial = CrownMaterial(
+floatArrayOf(0.79f, 0.53f, 1.0f, 0.96f),
+1.20f,
+90f,
+1.05f
+)
+
+private fun buildCrownAuraSphere(material: CrownMaterial): CrownPart? {
+val mesh = CrownMeshBuilder(material)
+addSphere(
+mesh = mesh,
+center = V3(0f, 0f, 0f),
+radius = 1f,
+segments = 20,
+rings = 14
+)
+return mesh.build()
+}
+
+private val crownAuraHazePart: CrownPart? by lazy(LazyThreadSafetyMode.NONE) {
+buildCrownAuraSphere(crownAuraHazeMaterial)
+}
+
+private val crownAuraCorePart: CrownPart? by lazy(LazyThreadSafetyMode.NONE) {
+buildCrownAuraSphere(crownAuraCoreMaterial)
+}
 
 private data class V3(
     val x: Float,
@@ -567,8 +618,6 @@ private class Crown3DRenderer : GLSurfaceView.Renderer {
             GLES20.glGetUniformLocation(program, "uFillDirection")
 
         parts = buildCrownModel()
-auraHazePart = buildAuraSphere(auraHazeMaterial)
-auraCorePart = buildAuraSphere(auraCoreMaterial)
 
 startTime = System.nanoTime()
     }
@@ -736,11 +785,12 @@ drawPart(part)
 }
 
 // Draw the animated purple aura around the crown.
-val haze = auraHazePart
-val core = auraCorePart
+val haze = crownAuraHazePart
+val core = crownAuraCorePart
 
 if (effectBrightness > 0.01f && haze != null && core != null) {
 GLES20.glDepthMask(false)
+val auraParentMatrix = modelMatrix.copyOf()
 
 val auraClock = when (mode) {
 2 -> 0f
@@ -748,7 +798,7 @@ val auraClock = when (mode) {
 else -> seconds
 }
 
-auraOrbs.forEach { orb ->
+crownAuraOrbs.forEach { orb ->
 val pulse = if (mode == 2) {
 0.5f
 } else {
@@ -775,7 +825,7 @@ val orbY = orb.y + driftY
 
 drawAuraPart(
 part = haze,
-parentMatrix = modelMatrix,
+parentMatrix = auraParentMatrix,
 x = orbX,
 y = orbY,
 z = orb.z,
@@ -785,7 +835,7 @@ alphaMultiplier = effectBrightness * 0.88f
 
 drawAuraPart(
 part = core,
-parentMatrix = modelMatrix,
+parentMatrix = auraParentMatrix,
 x = orbX,
 y = orbY,
 z = orb.z + 0.012f,
