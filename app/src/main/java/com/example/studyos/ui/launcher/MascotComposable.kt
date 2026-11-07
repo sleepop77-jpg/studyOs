@@ -218,8 +218,9 @@ fun MascotCanvas(
     progressArc: Float
 ) {
     val equippedSkin by Store.equippedMascot.collectAsState(initial = null)
+val motionMode by VisualSettings.motionMode.collectAsState()
 
-    val t = rememberInfiniteTransition(label = "mascot")
+val t = rememberInfiniteTransition(label = "mascot")
 
     val breath by t.animateFloat(
         0.97f,

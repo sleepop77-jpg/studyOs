@@ -14,6 +14,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -24,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +42,7 @@ import com.example.studyos.core.LockdownService
 import com.example.studyos.core.Store
 import com.example.studyos.core.StudyMarket
 import com.example.studyos.core.Timer
+import com.example.studyos.core.VisualSettings
 import com.example.studyos.ui.launcher.LauncherScreen
 import com.example.studyos.ui.lock.FocusLockActivity
 import com.example.studyos.ui.lockdown.LockdownScreen
@@ -70,8 +74,8 @@ class MainActivity : ComponentActivity() {
 
         Economy.init(applicationContext)
         StudyMarket.init(applicationContext)
-VisualSettings.init(applicationContext)
-Timer.init()
+        VisualSettings.init(applicationContext)
+        Timer.init()
         Store.init(applicationContext)
         Admin.init(applicationContext)
 
@@ -82,7 +86,7 @@ Timer.init()
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
 
         setContent {
-                        MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFD9534F))) {
+            MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFD9534F))) {
                 StudyOSRoot()
             }
         }
@@ -110,8 +114,9 @@ private fun StudyOSRoot() {
 
 @Composable
 private fun StudyOSNav() {
-val context = LocalContext.current
-val motionMode by VisualSettings.motionMode.collectAsState()
+    val context = LocalContext.current
+    val motionMode by VisualSettings.motionMode.collectAsState()
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }
@@ -133,14 +138,14 @@ val motionMode by VisualSettings.motionMode.collectAsState()
     AnimatedContent(
         targetState = route,
         transitionSpec = {
-when (motionMode) {
-2 -> EnterTransition.None togetherWith ExitTransition.None
-1 -> fadeIn(animationSpec = tween(120))
-.togetherWith(fadeOut(animationSpec = tween(120)))
-else -> (scaleIn(animationSpec = tween(280), initialScale = 0.88f) + fadeIn(animationSpec = tween(280)))
-.togetherWith(scaleOut(animationSpec = tween(280), targetScale = 1.08f) + fadeOut(animationSpec = tween(280)))
-}
-},
+            when (motionMode) {
+                2 -> EnterTransition.None togetherWith ExitTransition.None
+                1 -> fadeIn(animationSpec = tween(120))
+                    .togetherWith(fadeOut(animationSpec = tween(120)))
+                else -> (scaleIn(animationSpec = tween(280), initialScale = 0.88f) + fadeIn(animationSpec = tween(280)))
+                    .togetherWith(scaleOut(animationSpec = tween(280), targetScale = 1.08f) + fadeOut(animationSpec = tween(280)))
+            }
+        },
         label = "appOpen"
     ) { target ->
         when (target) {

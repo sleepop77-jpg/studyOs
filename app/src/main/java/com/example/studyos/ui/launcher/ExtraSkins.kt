@@ -45,6 +45,7 @@ const val DRAGON = "item_dragon_aura"
 const val KATANA = "item_neon_katana"
 const val COSMIC = "item_cosmic_scholar"
 const val QUIET_ORB = "item_quiet_orb"
+const val QUIET_ORB = "item_quiet_orb"
 
 val MASCOT_SET = setOf(
 HALO, NINJA, PARTY,
