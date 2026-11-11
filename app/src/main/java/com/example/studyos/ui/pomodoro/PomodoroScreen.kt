@@ -76,10 +76,13 @@ fun PomodoroScreen(back: () -> Unit) {
     val total by Timer.total.collectAsState()
     val running by Timer.running.collectAsState()
     val strict by Timer.strict.collectAsState()
-    val subject by Timer.subject.collectAsState()
+val subject by Timer.subject.collectAsState()
+val originalTotal by Timer.originalTotal.collectAsState()
+val isOvertime by Timer.isOvertime.collectAsState()
 
-    val canControl = !(strict && running)
-    val progress = if (total > 0) 1f - (seconds.toFloat() / total.toFloat()) else 0f
+val canControl = !(strict && running)
+val canConfigure = canControl && !isOvertime
+val progress = if (total > 0) 1f - (seconds.toFloat() / total.toFloat()) else 0f
 
     var celebrate by remember { mutableStateOf(false) }
     var wasRunning by remember { mutableStateOf(false) }
