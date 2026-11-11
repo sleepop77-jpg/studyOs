@@ -296,8 +296,8 @@ val progress = if (total > 0) 1f - (seconds.toFloat() / total.toFloat()) else 0f
 
                     Slider(
                         value = sliderMinutes,
-                        onValueChange = { sliderMinutes = it.coerceIn(25f, 180f) },
-valueRange = 25f..180f,
+                        onValueChange = { sliderMinutes = it.coerceIn(1f, 180f) },
+valueRange = 1f..180f,
 enabled = canConfigure,
                         colors = SliderDefaults.colors(
                             thumbColor = Color(0xFFE53935),

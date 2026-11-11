@@ -184,7 +184,7 @@ object Timer {
     fun setMinutes(m: Int) {
         if (!canControl() || running.value || isOvertime.value) return
 
-        val clamped = m.coerceIn(25, 180)
+        val clamped = m.coerceIn(1, 180)
         originalTotal.value = clamped * 60
         total.value = clamped * 60
         seconds.value = clamped * 60
