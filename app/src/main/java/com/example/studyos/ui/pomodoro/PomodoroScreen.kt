@@ -308,7 +308,7 @@ fun PomodoroScreen(back: () -> Unit) {
 
                     Button(
                         onClick = { Timer.setMinutes(sliderMinutes.toInt()) },
-                        enabled = canControl && sliderMinutes.toInt() != total / 60,
+                        enabled = canConfigure && sliderMinutes.toInt() != originalTotal / 60,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935), contentColor = Color.White),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth().height(44.dp)

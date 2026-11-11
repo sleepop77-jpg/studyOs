@@ -35,8 +35,17 @@
                 android:value="Focus session distraction blocking" />
         </service>
 
-        <activity
-            android:name=".ui.lockdown.BustedActivity"
+<service
+android:name=".core.FocusTimerService"
+android:exported="false"
+android:foregroundServiceType="specialUse">
+<property
+android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+android:value="Maintaining a user-started focus countdown while the device screen is off" />
+</service>
+
+<activity
+android:name=".ui.lockdown.BustedActivity"
             android:exported="false"
             android:theme="@style/Theme.StudyOS"
             android:excludeFromRecents="true"

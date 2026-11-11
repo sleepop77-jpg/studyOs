@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
         Economy.init(applicationContext)
         StudyMarket.init(applicationContext)
         VisualSettings.init(applicationContext)
-        Timer.init()
+        Timer.init(applicationContext)
         Store.init(applicationContext)
         Admin.init(applicationContext)
 

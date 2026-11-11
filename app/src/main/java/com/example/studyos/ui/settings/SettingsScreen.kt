@@ -87,6 +87,7 @@ var showAntiDeleteWarning by remember { mutableStateOf(false) }
             )
 
             VisualSettingsCard()
+OvertimeSettingsCard()
 
 Card(
 shape = RoundedCornerShape(18.dp),

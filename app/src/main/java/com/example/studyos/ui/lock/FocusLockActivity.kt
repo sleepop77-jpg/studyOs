@@ -131,12 +131,54 @@ private fun FocusLockScreen(onClose: () -> Unit) {
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                if (running) "STAY FOCUSED" else "READY",
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 3.sp
-            )
+if (running) "STAY FOCUSED" else "READY",
+color = Color.White.copy(alpha = 0.6f),
+fontSize = 12.sp,
+fontWeight = FontWeight.Black,
+letterSpacing = 3.sp
+)
+
+if (originalCompleted) {
+Spacer(modifier = Modifier.height(12.dp))
+
+Column(
+horizontalAlignment = Alignment.CenterHorizontally,
+verticalArrangement = Arrangement.spacedBy(5.dp),
+modifier = Modifier.padding(horizontal = 20.dp)
+) {
+Text(
+"✓ Completed a ${Timer.durationLabel(originalDurationMinutes)} focus session",
+color = Color(0xFF69F0AE),
+fontSize = 12.sp,
+fontWeight = FontWeight.Bold,
+textAlign = TextAlign.Center
+)
+
+if (overtimeCompletedCount > 0) {
+Text(
+if (overtimeCompletedCount == 1) {
+"✓ Completed one ${Timer.durationLabel(overtimeMinutes)} focus session"
+} else {
+"✓ Completed $overtimeCompletedCount × ${Timer.durationLabel(overtimeMinutes)} focus sessions"
+},
+color = Color(0xFF69F0AE),
+fontSize = 12.sp,
+fontWeight = FontWeight.Bold,
+textAlign = TextAlign.Center
+)
+}
+
+if (isOvertime && running) {
+Text(
+"Now studying in your ${Timer.ordinalWord(overtimeIndex)} overtime session",
+color = Color(0xFF69F0AE),
+fontSize = 12.sp,
+fontWeight = FontWeight.Bold,
+textAlign = TextAlign.Center
+)
+}
+}
+}
         }
 
         Row(
