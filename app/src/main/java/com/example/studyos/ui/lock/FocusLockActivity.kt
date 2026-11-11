@@ -70,8 +70,15 @@ class FocusLockActivity : ComponentActivity() {
 private fun FocusLockScreen(onClose: () -> Unit) {
     val context = LocalContext.current
     val seconds by Timer.displaySeconds.collectAsState()
-    val total by Timer.total.collectAsState()
-    val running by Timer.running.collectAsState()
+val total by Timer.total.collectAsState()
+val running by Timer.running.collectAsState()
+
+val originalCompleted by Timer.originalCompleted.collectAsState()
+val originalDurationMinutes by Timer.originalDurationMinutes.collectAsState()
+val isOvertime by Timer.isOvertime.collectAsState()
+val overtimeIndex by Timer.overtimeIndex.collectAsState()
+val overtimeMinutes by Timer.overtimeMinutes.collectAsState()
+val overtimeCompletedCount by Timer.overtimeCompletedCount.collectAsState()
 
     val preferences = remember {
         context.getSharedPreferences("focus_lock_settings", Context.MODE_PRIVATE)

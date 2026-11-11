@@ -293,9 +293,9 @@ fun PomodoroScreen(back: () -> Unit) {
 
                     Slider(
                         value = sliderMinutes,
-                        onValueChange = { sliderMinutes = it.coerceIn(1f, 180f) },
-                        valueRange = 1f..180f,
-                        enabled = canControl,
+                        onValueChange = { sliderMinutes = it.coerceIn(25f, 180f) },
+valueRange = 25f..180f,
+enabled = canConfigure,
                         colors = SliderDefaults.colors(
                             thumbColor = Color(0xFFE53935),
                             activeTrackColor = Color(0xFFE53935),
